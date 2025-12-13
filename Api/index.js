@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRouter from './routes/user.route.js';
+import authRouter from './routes/auth.route.js';
 dotenv.config();
 const app =express();
 mongoose.connect(process.env.MONGO).then(()=>{
@@ -9,7 +10,9 @@ mongoose.connect(process.env.MONGO).then(()=>{
 }).catch((err)=>{
     console.log(err);
 })
+app.use(express.json());
 app.listen(3000,()=>{
     console.log("server in 3000");
 });
 app.use('/Api/user',userRouter);
+app.use('/Api/auth',authRouter);
