@@ -2,17 +2,20 @@ import User from '../Models/user.js';
 import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/err.js';
 import jwt from 'jsonwebtoken';
-export const signup = async (req,resp)=>{
+export const signup = async (req,resp,next)=>{
     
     const {username,email,password}=req.body;
     const hashedPassword = bcryptjs.hashSync(password,10)
     const newUser= new User({username,email,password:hashedPassword});
     try{
       await newUser.save()
-     resp.status(201).json("User Singup Successfully");
+     resp.status(201).json({
+      success:true,
+      message:"user Signed up Successfully",
+     });
     }
     catch(error){
-      next(errorHandler(550,'error from function'));
+      next(errorHandler(500,error.message|| "SignUp Failed"));
     }
     // try{
   //   resp.status(201).json({message:"User Signed up Successfully"});
@@ -33,7 +36,10 @@ export  const signin=async(req,resp,next)=>{
    resp
    .cookie('access_token',token,{ httpOnly:true })
    .status(200)
-   .json(rest);
+   .json({success:true, 
+    message:"Login Succesfully",
+    user:rest
+  });
   }catch(error){
     next(error);
   }
