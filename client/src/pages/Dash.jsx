@@ -55,10 +55,12 @@ export default function Dash() {
     e.preventDefault();
   try{
     dispatch(updateUserStart());
+    const token= localStorage.getItem('token');
     const resp=await fetch(`/api/user/update/${currentUser.user._id}`,{
       method:'PUT',
       headers:{
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body:JSON.stringify(formData),
       credentials:'include',
@@ -77,8 +79,12 @@ export default function Dash() {
   const handleDeleteUser=async() => {
     try{
    dispatch(deleteUserStart());
+   const token= localStorage.getItem('token');
    const resp=await fetch(`/api/user/delete/${currentUser.user._id}`,{
     method:'DELETE',
+    headers:{
+      'Authorization': `Bearer ${token}`
+    },
    });
    const data=await resp.json();
    if(data.success === false){
@@ -94,7 +100,12 @@ dispatch(deleteUserFailure(error.message))
 const handleSignOut=async()=>{
   try{
     dispatch(signOutUserStart());
-  const resp=await fetch('/api/auth/signout');
+    const token= localStorage.getItem('token');
+  const resp=await fetch('/api/auth/signout',{
+    headers:{
+      'Authorization': `Bearer ${token}`,
+     }
+  });
   const data=await resp.json();
   if(data.success === false){
     dispatch(deleteUserFailure(data.message))

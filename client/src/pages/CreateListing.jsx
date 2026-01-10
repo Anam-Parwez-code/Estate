@@ -114,11 +114,15 @@ export default function CreateListing(){
             return setError('Discount price mut be lower than regular Price')
 setLoading(true);
 setError(false);
+const token= localStorage.getItem('token');
+console.log("Token being sent:", token);
 const resp=await fetch('/api/listing/create',{
     method:'POST', 
     headers:{
         'Content-Type':'application/json',
-    },
+         'Authorization': `Bearer ${token}`,
+    }
+    ,
     body:JSON.stringify({
         ...formData,
         userRef:currentUser._id,

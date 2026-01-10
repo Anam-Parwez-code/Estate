@@ -30,12 +30,14 @@ export default function SignIn() {
         const data=await resp.json();
         console.log(data);
         if(resp.ok){
+          localStorage.setItem('token',data.token);
+          localStorage.setItem('user',JSON.stringify(data.user));
                dispatch(signInSuccess(data));
                navigate('/dash');
            
-        }
+        }else{
         dispatch(signInFailure(data.message || "Login failed"));
-   
+        }
       }
       catch(error){
         dispatch(signInFailure(error.message));

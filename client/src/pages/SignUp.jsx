@@ -34,6 +34,8 @@ import OAuth from '../components/OAuth';
         }
         setLoading(false);
         setError(null);
+        localStorage.setItem('token',data.token);
+        localStorage.setItem('user',JSON.stringify(data.user));
         navigate('/sign-in');
       }
       catch(error){
