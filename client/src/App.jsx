@@ -4,7 +4,9 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import About from './pages/about';
 import Dash from './pages/Dash';
+import CreateListing from './pages/CreateListing';
 import Header from './components/Header';
+import PrivateRoute from './components/PrivateRoute';
 
 
 
@@ -16,9 +18,12 @@ export default function App() {
     <Route path ="/sign-in" element={<SignIn/>} />
     <Route path ="/sign-up" element={<SignUp />} />
     <Route path ="/about" element={<About />} />
+    <Route element={<PrivateRoute/>}>
     <Route path ="/dash" element={<Dash />} />
-
-    </Routes></BrowserRouter> 
+     <Route path ="/create-Listing" element={<CreateListing />} />
+      </Route>
+    </Routes>
+</BrowserRouter> 
    
   
 }
