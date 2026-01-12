@@ -38,6 +38,7 @@ export  const signin=async(req,resp,next)=>{
    .status(200)
    .json({success:true, 
     message:"Login Succesfully",
+    token,
     user:rest
   });
   }catch(error){
