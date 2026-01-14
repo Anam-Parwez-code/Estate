@@ -1,6 +1,7 @@
 import bcryptjs from 'bcryptjs';
 import  errorHandler  from '../utils/err.js';
 import User from '../Models/user.js';
+import Listing from '../Models/listing.model.js';
 export const test=(req,resp)=>{
     resp.send("API is working ");
 };
@@ -35,5 +36,18 @@ export const deleteUser= async (req,resp,next)=>{
         resp.json({success:true,message:'User has been deleted!'});
     }catch(error){
        resp.status(500).json({success:false,message:error.message});
+    }
+};
+export const getUserListings=async(req,resp,next)=>{
+    if(req.user.id === req.params.id){
+   try{
+    const listings=await Listing.find({ userRef:req.params.id});
+    resp.status(200).json(listings);
+    next(error);
+   } catch(error){
+    next(error);
+   }
+    }else{
+        return next(errorHandler(401,'you can only view your own listings'));
     }
 }
