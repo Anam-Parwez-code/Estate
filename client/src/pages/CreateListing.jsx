@@ -1,4 +1,4 @@
-import { set } from 'mongoose';
+
 import React, { useState } from 'react'
 //import { getDownloadURL, getStorage,ref,uploadBytesResumable } from 'firebase/storage';
 //import {app} from '../firebase';
@@ -28,48 +28,46 @@ export default function CreateListing(){
     const [error,setError]=useState(false);
     const[loading,setLoading]=useState(false);
     console.log(formData);
-    const handleImageSubmit=async () =>{
-       if(files.length>0 && files.length + formData.imageUrls.length<7){
-        setUploading(true);
-        setImageUploadError(false);
-        //const promises=[];
-       // for(let i=0; i<files.length;i++){
-         ////   promises.push(storeImage(files[i]));
-        //}
-          ////Promise.all(promises).then((urls)=> {
-              //setFormData({
-              try{
-                const data=new FormData();
-                files.forEach((file)=> data.append("images",file));
-                const token= localStorage.getItem('token');
-                const resp= await fetch('/api/listing/uploadImages',{
-                    method:'POST',
-                    headers:{
-                        Authorization:`Bearer ${token}`,
-                    },
-                    body:data,
-              });  const result= await resp.json();
-            if(result.success===false){
-                setImageUploadError(result.message);
-                //setUploading(false);
-              //  return;
-            }else{
-                setFormData({
-                    ...formData,
-                    imageUrls:formData.imageUrls.concat(result.urls),
-                });
-            }
-        }catch(error){
-                setImageUploadError('Image upload failed (2 mb max per image)');
-                ///setUploading(false);
-        }finally{
-            setUploading(false);
-        }
-    }else{
-            setImageUploadError('You can only upload 6 images per listing');
-            setUploading(false);
-        }
-    };
+    const handleImageSubmit = async () => {
+  if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
+    setUploading(true);
+    setImageUploadError(false);
+
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const data = new FormData();
+        data.append("file", file);
+        data.append("upload_preset", "estate_preset"); // Cloudinary preset
+        data.append("folder", "estate");
+
+        const resp = await fetch(
+          "https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload",
+          {
+            method: "POST",
+            body: data,
+          }
+        );
+        const result = await resp.json();
+        return result.secure_url; // Cloudinary image URL
+      });
+
+      const urls = await Promise.all(uploadPromises);
+
+      setFormData({
+        ...formData,
+        imageUrls: formData.imageUrls.concat(urls),
+      });
+    } catch (error) {
+      setImageUploadError("Image upload failed (2 mb max per image)");
+    } finally {
+      setUploading(false);
+    }
+  } else {
+    setImageUploadError("You can only upload 6 images per listing");
+    setUploading(false);
+  }
+};
+
                 
           
     

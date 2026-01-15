@@ -6,9 +6,10 @@ import authRouter from './routes/auth.route.js';
 import listingRouter from './routes/listing.route.js';
 import  cookieParser from 'cookie-parser';
 
-dotenv.config();
+dotenv.config({path:'./Api/.env'});
 const app =express();
-mongoose.connect(process.env.MONGO).then(()=>{
+console.log("MONGO_URI:",process.env.MONGO_URI);
+mongoose.connect(process.env.MONGO_URI).then(()=>{
     console.log('Connected to MongoDB!');
 }).catch((err)=>{
     console.log(err);

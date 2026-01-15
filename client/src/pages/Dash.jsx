@@ -37,29 +37,23 @@ export default function Dash() {
     }
   }, [file]);
 
-  const handleFileUpload = (file) => {
-    const storage = getStorage(app);
-    const fileName = new Date().getTime() + "_" + file.name;
-    const storageRef = ref(storage, fileName);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setFileperc(Math.round(progress));
-      },
-      (error) => {
-        setFileUploadError(true);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
-          setFormData({ ...formData, avatar: downloadURL })
-        );
-      }
-    );
-  };
+  const handleFileUpload = async(file) => {
+    try{
+const data=new FormData();
+data.append("file",file);
+data.append("upload_preset","estate_preset");
+data.append("folder","estate");
+const resp= await fetch("https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload",{
+  method:"POST",
+  body:data,
+});
+const result= await resp.json();
+setFormData({...formData,avatar:result.secure_url});
+    }catch(error){
+      setFileUploadError(true);
+    }
+  }
+   
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
