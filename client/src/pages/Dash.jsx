@@ -135,7 +135,7 @@ setFormData({...formData,avatar:result.secure_url});
   const handleShowListings = async () => {
     try {
       setShowListingsError(false);
-      const resp = await fetch(`/api/listings/user/${currentUser._id}`);
+      const resp = await fetch(`/api/user/listings/${currentUser._id}`);
       const data = await resp.json();
       if (data.success === false) {
         setShowListingsError(true);
@@ -146,6 +146,24 @@ setFormData({...formData,avatar:result.secure_url});
       setShowListingsError(true);
     }
   };
+  const handleListingDelete=async (listingId)=>{
+    try{
+const resp=await fetch(`/api/listing/delete/${(listingId)}`,{
+  method:'DELETE',
+
+});
+const data=await resp.json();
+if(data.success===false){
+  console.log(data.message);
+  return;
+}
+setUserListings((prev)=>
+  prev.filter((listing) => listing._id !== listingId)
+);
+    }catch(error){
+      console.log(error.message);
+    }
+  }
 
   return (
     <div className="p-3 max-w-lg mx-auto">
@@ -247,7 +265,7 @@ setFormData({...formData,avatar:result.secure_url});
 
       {userListings && userListings.length > 0 && (
         <div className="flex flex-col gap-4">
-          <h1 className="text-centre mt-7 text-2xl">Your Listing</h1>
+          <h1 className="text-centre mt-7 text-2xl font-semibold">Your Listing</h1>
           {userListings.map((listing) => (
             <div
               key={listing._id}
@@ -261,13 +279,13 @@ setFormData({...formData,avatar:result.secure_url});
                 />
               </Link>
               <Link
-                className="text-slate-700 font-sembold hover:underline truncate flex-1"
+                className="text-slate-700 font-semi  bold hover:underline truncate flex-1"
                 to={`/listing/${listing._id}`}
               >
                 <p>{listing.name}</p>
               </Link>
               <div className="flex flex-col item-centre">
-                <button className="text-red-700 uppercase">Delete</button>
+                <button onClick={()=>handleListingDelete(listing._id)} className="text-red-700 uppercase">Delete</button>
                 <button className="text-green-700 uppercase">Edit</button>
               </div>
             </div>
