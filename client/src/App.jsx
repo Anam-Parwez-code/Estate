@@ -21,6 +21,7 @@ export default function App() {
     <Route element={<PrivateRoute/>}>
     <Route path ="/dash" element={<Dash />} />
      <Route path ="/create-Listing" element={<CreateListing />} />
+     <Route path='/update-listing'element={<UpdateListing/>}/>
       </Route>
     </Routes>
 </BrowserRouter> 

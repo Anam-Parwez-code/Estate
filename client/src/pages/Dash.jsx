@@ -135,7 +135,9 @@ setFormData({...formData,avatar:result.secure_url});
   const handleShowListings = async () => {
     try {
       setShowListingsError(false);
-      const resp = await fetch(`/api/user/listings/${currentUser._id}`);
+      const resp = await fetch(`/api/user/listings/${currentUser._id}`, {
+        method: 'GET',
+      });
       const data = await resp.json();
       if (data.success === false) {
         setShowListingsError(true);
@@ -150,7 +152,7 @@ setFormData({...formData,avatar:result.secure_url});
     try{
 const resp=await fetch(`/api/listing/delete/${(listingId)}`,{
   method:'DELETE',
-
+  credentials:'include',  
 });
 const data=await resp.json();
 if(data.success===false){
@@ -286,7 +288,9 @@ setUserListings((prev)=>
               </Link>
               <div className="flex flex-col item-centre">
                 <button onClick={()=>handleListingDelete(listing._id)} className="text-red-700 uppercase">Delete</button>
+                <Link to={`/update-listing/${listing._id}`}>
                 <button className="text-green-700 uppercase">Edit</button>
+                </Link>
               </div>
             </div>
           ))}

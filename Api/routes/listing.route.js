@@ -1,5 +1,5 @@
 import express from 'express';
-import { createListing,deleteListing } from '../Controller/listing.cont.js';
+import { createListing,deleteListing,updateListing } from '../Controller/listing.cont.js';
 import {verifyToken} from '../utils/verifyUser.js';
 import upload from '../utils/upload.js';
 const router=express.Router();
@@ -8,4 +8,5 @@ router.post('/create',verifyToken,
     createListing
 );
 router.delete('/delete/:id',verifyToken,deleteListing);
+router.post('/update/:id',verifyToken,updateListing);
 export default router;

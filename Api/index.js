@@ -6,7 +6,7 @@ import authRouter from './routes/auth.route.js';
 import listingRouter from './routes/listing.route.js';
 import  cookieParser from 'cookie-parser';
 
-dotenv.config({path:'./Api/.env'});
+dotenv.config();
 const app =express();
 console.log("MONGO_URI:",process.env.MONGO_URI);
 mongoose.connect(process.env.MONGO_URI).then(()=>{
