@@ -7,7 +7,7 @@ import Dash from './pages/Dash';
 import CreateListing from './pages/CreateListing';
 import Header from './components/Header';
 import PrivateRoute from './components/PrivateRoute';
-
+import UpdateListing from './pages/UpdateListing';
 
 
 export default function App() {
@@ -21,7 +21,8 @@ export default function App() {
     <Route element={<PrivateRoute/>}>
     <Route path ="/dash" element={<Dash />} />
      <Route path ="/create-Listing" element={<CreateListing />} />
-     <Route path='/update-listing'element={<UpdateListing/>}/>
+      <Route path='/update-listing/:listingId'element={<UpdateListing/>}/> 
+      
       </Route>
     </Routes>
 </BrowserRouter> 

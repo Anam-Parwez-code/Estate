@@ -62,16 +62,22 @@ setFormData({...formData,avatar:result.secure_url});
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      
       dispatch(updateUserStart());
-      const token = localStorage.getItem("token");
+      //const token = localStorage.getItem("token");
+      const token=currentUser?.token;
+      if(!token){
+        dispatch(updateUserFailure("User is not authenticated"));
+        return;
+      }
       const data=new FormData();
-      if(file) data.append("avatar",avatar);
+      if(file) data.append("avatar",formData.avatar);
       Object.keys(formData).forEach((key)=> data.append(key,formData[key]));
 
       const resp = await fetch(`/api/user/update/${currentUser.user._id}`, {
         method: "PUT",
         headers: {
-          //"Content-Type": "application/json",
+         // "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         //body: JSON.stringify(formData),
@@ -135,8 +141,17 @@ setFormData({...formData,avatar:result.secure_url});
   const handleShowListings = async () => {
     try {
       setShowListingsError(false);
-      const resp = await fetch(`/api/user/listings/${currentUser._id}`, {
+    console.log("Current User ID:", currentUser.user._id);
+    const token = currentUser?.token|| localStorage.getItem("token");
+    if(!token){
+      setShowListingsError(true);
+      return;
+    }
+      const resp = await fetch(`/api/user/listings/${currentUser.user._id}`, {
         method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       const data = await resp.json();
       if (data.success === false) {
@@ -182,7 +197,7 @@ setUserListings((prev)=>
         <img
           onClick={() => fileRef.current.click()}
           src={
-            formData?.avatar || currentUser?.avatar || "/default-avatar.png"
+            formData?.avatar || currentUser?.user?.avatar || "/default-avatar.png"
           }
           alt="profile"
           className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
@@ -206,7 +221,7 @@ setUserListings((prev)=>
         <input
           type="text"
           placeholder="username"
-          defaultValue={currentUser?.username}
+          defaultValue={currentUser?.user?.username}
           id="username"
           className="border p-3 rounded-lg"
           onChange={handleChange}
@@ -214,7 +229,7 @@ setUserListings((prev)=>
         <input
           type="email"
           placeholder="email"
-          defaultValue={currentUser?.email}
+          defaultValue={currentUser?.user?.email}
           id="email"
           className="border p-3 rounded-lg"
           onChange={handleChange}
