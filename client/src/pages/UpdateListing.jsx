@@ -4,7 +4,7 @@ import  { useEffect,useState } from 'react'
 //import {app} from '../firebase';
 import {useSelector} from 'react-redux'
 import {useNavigate,useParams} from 'react-router-dom';
-export default function updateListing(){
+export default function UpdateListing(){
     const {currentUser}=useSelector(state=> state.user)
     const navigate=useNavigate();
     const params=useParams();
@@ -32,7 +32,18 @@ export default function updateListing(){
       const fetchListing= async() =>{
         const listingId=params.listingId;
         console.log("Listing ID:", listingId);
-    }
+        const resp=await fetch(`/api/listing/get/${listingId}`);
+        const data=await resp.json();
+        if(data.success===false){
+            console.log(data.message);
+            return;
+        }
+      //  console.log("Fetched listing data:", data);
+      setFormData(prev=>({
+        ...prev,
+        ...data,}));
+    
+      };
     fetchListing();
     },[] );
     console.log(formData);
@@ -86,7 +97,12 @@ export default function updateListing(){
         });
     };
      const handleChange = (e) =>{
-        if(e.target.id=='sell'|| e.target.id ==='Rent'){
+      if(['parking','furnished','offer'].includes(e.target.id)){
+        setFormData(prev=> (
+          {...prev,[e.target.id]:e.target.checked}
+        ));
+      }
+      if(e.target.id=='sell'|| e.target.id ==='Rent'){
             setFormData({
                 ...formData,
                 type:e.target.id
@@ -120,7 +136,7 @@ if(!token){
     return setError('User not authenticated');
 }
 console.log("Token being sent:", token);
-const resp=await fetch('/api/listing/create',{
+const resp=await fetch(`/api/listing/update/${params.listingId}`,{
     method:'POST', 
     headers:{
         'Content-Type':'application/json',
@@ -138,7 +154,7 @@ setLoading(false);
 if(data.success===false){
     setError(data.message);
 }
-   navigate(`/listings/${data._id}`);
+   navigate(`/listing/${data._id||params.listingId}`);
        }catch(error){
         setError(error.message);
         setLoading(false);
@@ -173,6 +189,7 @@ if(data.success===false){
         <span>Furnished</span>
         </div>
         <div className='flex gap-2'>
+        
         <input type="checkbox" id ='offer' className='w-5' onChange={handleChange} checked={formData.offer}/>
         <span>Offer</span>
         </div>
