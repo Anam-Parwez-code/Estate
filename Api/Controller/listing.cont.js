@@ -59,6 +59,6 @@ export const getListing=async(req,resp,next)=>{
         }
         resp.status(200).json(listing);
     }catch(error){
-        next(error);
+        return next(error);
     }
 };

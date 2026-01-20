@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import About from './pages/about';
+import Listing from './pages/listing';
 import Dash from './pages/Dash';
 import CreateListing from './pages/CreateListing';
 import Header from './components/Header';
@@ -18,6 +19,7 @@ export default function App() {
     <Route path ="/sign-in" element={<SignIn/>} />
     <Route path ="/sign-up" element={<SignUp />} />
     <Route path ="/about" element={<About />} />
+     <Route path ="/listing/:listingId" element={<Listing />} />
     <Route element={<PrivateRoute/>}>
     <Route path ="/dash" element={<Dash />} />
      <Route path ="/create-Listing" element={<CreateListing />} />
