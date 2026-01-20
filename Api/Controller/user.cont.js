@@ -1,5 +1,5 @@
 import bcryptjs from 'bcryptjs';
-import  errorHandler  from '../utils/err.js';
+import  {errorHandler}  from '../utils/err.js';
 import User from '../Models/user.js';
 import Listing from '../Models/listing.model.js';
 export const test=(req,resp)=>{
@@ -50,4 +50,18 @@ export const getUserListings=async(req,resp,next)=>{
     }else{
         return next(errorHandler(401,'you can only view your own listings'));
     }
-}
+};
+export const getUser = async (req, resp, next) => {
+  try {
+    
+    const user = await User.findById(req.params.id);
+  
+    if (!user) return next(errorHandler(404, 'User not found!'));
+  
+    const { password: pass, ...rest } = user._doc;
+  
+    resp.status(200).json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
