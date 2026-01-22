@@ -25,9 +25,14 @@ const userSlice = createSlice({
             state.loading=true;
         },
         updateUserSuccess:(state,action)=>{
-            state.currentUser=action.payload;
+            state.currentUser={
+                ...state.currentUser,
+                user:action.payload.user,
+                token:state.currentUser?.token
+            };
             state.loading=false;
             state.error=null;
+            localStorage.setItem("currentUser",JSON.stringify(state.currentUser));
         },
         updateUserFailure:(state,action)=>{
             state.error=action.payload;

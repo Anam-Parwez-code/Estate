@@ -38,22 +38,36 @@ export default function Dash() {
   }, [file]);
 
   const handleFileUpload = async(file) => {
-    try{
-const data=new FormData();
-data.append("file",file);
-data.append("upload_preset","estate_preset");
-data.append("folder","estate");
-const resp= await fetch("https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload",{
-  method:"POST",
-  body:data,
-});
-const result= await resp.json();
-setFormData({...formData,avatar:result.secure_url});
-    }catch(error){
-      setFileUploadError(true);
+    const data=new FormData();
+    if(file){
+      data.append("avatar",file);
     }
-  }
-   
+    data.append("username",username);
+    data.append("email",email);
+    if(password){
+      data.append("password",password);
+    }
+    try {
+      const resp=await fetch(`/api/user/update/${currentUser.user._id}`,{
+        method:"PUT",
+        headers:{
+          Authorization:`Bearer ${currentUser?.token|| localStorage.getItem("token")}`, 
+          
+        },
+    
+      });
+//const data=new FormData();
+//data.append("file",file);
+//data.append("upload_preset","estate_preset");
+//data.append("folder","estate");
+//const resp= await fetch("https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload",{
+  //method:"POST",
+  //body:data,
+//});
+const result= await resp.json();
+if (result.success === false) { dispatch(updateUserFailure(result.message)); return; } dispatch(updateUserSuccess({ user: result.user, token: currentUser.token })); setUpdateSuccess(true); }
+ catch (error) { dispatch(updateUserFailure(error.message)); } };
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -65,31 +79,32 @@ setFormData({...formData,avatar:result.secure_url});
       
       dispatch(updateUserStart());
       //const token = localStorage.getItem("token");
-      const token=currentUser?.token;
+      const token=currentUser?.token||localStorage.getItem("token");
       if(!token){
         dispatch(updateUserFailure("User is not authenticated"));
         return;
       }
-      const data=new FormData();
-      if(file) data.append("avatar",formData.avatar);
-      Object.keys(formData).forEach((key)=> data.append(key,formData[key]));
+      //const data=new FormData();
+      //if(file) data.append("avatar",formData.avatar);
+      //console.log("Form Data:", formData.avatar);
+      //Object.keys(formData).forEach((key)=> data.append(key,formData[key]));
 
       const resp = await fetch(`/api/user/update/${currentUser.user._id}`, {
         method: "PUT",
         headers: {
-         // "Content-Type": "application/json",
+         "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        //body: JSON.stringify(formData),
+        body: JSON.stringify(formData),
         //credentials: "include",
-        body:data,
+        //body:data,
       });
       const result= await resp.json();
       if (result.success === false) {
         dispatch(updateUserFailure(result.message));
         return;
       }
-      dispatch(updateUserSuccess(result));
+dispatch(updateUserSuccess({ user: result.user, token }));
       setUpdateSuccess(true);
     } catch (error) {
       dispatch(updateUserFailure(error?.message || "update Failed"));
@@ -187,7 +202,7 @@ setUserListings((prev)=>
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
-          onChange={(e) => setFile(e.target.files[0])}
+          onChange={(e) => handleFileUpload(e.target.files[0])}
           type="file"
           ref={fileRef}
           hidden

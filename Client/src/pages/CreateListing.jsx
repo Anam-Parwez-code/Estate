@@ -78,10 +78,10 @@ export default function CreateListing(){
         });
     };
      const handleChange = (e) =>{
-        if(e.target.id=='sell'|| e.target.id ==='Rent'){
+        if(e.target.id=='sale'|| e.target.id ==='rent'){
             setFormData({
                 ...formData,
-                type:e.target.id
+               type: e.target.id,
             })
         }
         if(e.target.id === 'parking' || e.target.id ==='furnished' || e.target.id==='offer'){
@@ -130,7 +130,7 @@ setLoading(false);
 if(data.success===false){
     setError(data.message);
 }
-   navigate(`/listings/${data._id}`);
+   navigate(`/listing/${data._id}`);
        }catch(error){
         setError(error.message);
         setLoading(false);
@@ -149,11 +149,11 @@ if(data.success===false){
                     value={formData.address}/>
       <div className='flex gap-6 flex-wrap'>
        <div className='flex gap-2'>
-        <input type="checkbox" id ='sell' className='w-5' onChange={handleChange} checked={formData.type==='sell'}/>
+        <input type="checkbox" id ='sale' className='w-5' onChange={handleChange} checked={formData.type==='sale'}/>
         <span>Sell</span>
         </div>
         <div className='flex gap-2'>
-        <input type="checkbox" id ='Rent' className='w-5' onChange={handleChange} checked={formData.type==='Rent'} />
+        <input type="checkbox" id ='rent' className='w-5' onChange={handleChange} checked={formData.type==='rent'} />
         <span>Rent</span>
         </div>
         <div className='flex gap-2'>

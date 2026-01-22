@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -16,8 +15,8 @@ export default function Home() {
   useEffect(() => {
     const fetchOfferListings = async () => {
       try {
-        const resp = await fetch('/api/listing/get?offer=true&limit=4');
-        const data = await resp.json();
+        const res = await fetch('/api/listing/get?offer=true&limit=4');
+        const data = await res.json();
         setOfferListings(data);
         fetchRentListings();
       } catch (error) {
@@ -26,8 +25,8 @@ export default function Home() {
     };
     const fetchRentListings = async () => {
       try {
-        const resp = await fetch('/api/listing/get?type=rent&limit=4');
-        const data = await resp.json();
+        const res = await fetch('/api/listing/get?type=rent&limit=4');
+        const data = await res.json();
         setRentListings(data);
         fetchSaleListings();
       } catch (error) {
@@ -37,11 +36,11 @@ export default function Home() {
 
     const fetchSaleListings = async () => {
       try {
-        const resp = await fetch('/api/listing/get?type=sale&limit=4');
-        const data = await resp.json();
+        const res = await fetch('/api/listing/get?type=sale&limit=4');
+        const data = await res.json();
         setSaleListings(data);
       } catch (error) {
-        console.log(error);
+        log(error);
       }
     };
     fetchOfferListings();
