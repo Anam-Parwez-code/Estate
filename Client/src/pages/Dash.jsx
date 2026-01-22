@@ -31,31 +31,31 @@ export default function Dash() {
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (file) {
-      handleFileUpload(file);
-    }
-  }, [file]);
+ // useEffect(() => {
+   // if (file) {
+     // handleFileUpload(file);
+    //}
+  //}, [file]);
 
-  const handleFileUpload = async(file) => {
-    const data=new FormData();
-    if(file){
-      data.append("avatar",file);
-    }
-    data.append("username",username);
-    data.append("email",email);
-    if(password){
-      data.append("password",password);
-    }
-    try {
-      const resp=await fetch(`/api/user/update/${currentUser.user._id}`,{
-        method:"PUT",
-        headers:{
-          Authorization:`Bearer ${currentUser?.token|| localStorage.getItem("token")}`, 
+ // const handleFileUpload = async(file) => {
+   // const data=new FormData();
+    //if(file){
+      //data.append("avatar",file);
+    //}
+    //data.append("username",username);
+    //data.append("email",email);
+    //if(password){
+      ///data.append("password",password);
+   // }
+    //t/ry {
+      //const resp=await fetch(`/api/user/update/${currentUser.user._id}`,{
+        //method:"PUT",
+        //headers:{
+          //Authorization:`Bearer ${currentUser?.token|| localStorage.getItem("token")}`, 
           
-        },
+        //},
     
-      });
+  //    });
 //const data=new FormData();
 //data.append("file",file);
 //data.append("upload_preset","estate_preset");
@@ -64,9 +64,9 @@ export default function Dash() {
   //method:"POST",
   //body:data,
 //});
-const result= await resp.json();
-if (result.success === false) { dispatch(updateUserFailure(result.message)); return; } dispatch(updateUserSuccess({ user: result.user, token: currentUser.token })); setUpdateSuccess(true); }
- catch (error) { dispatch(updateUserFailure(error.message)); } };
+//const result= await resp.json();
+//if (result.success === false) { dispatch(updateUserFailure(result.message)); return; } dispatch(updateUserSuccess({ user: result.user, token: currentUser.token })); setUpdateSuccess(true); }
+ //catch (error) { dispatch(updateUserFailure(error.message)); } };
 
 
   const handleChange = (e) => {
@@ -75,15 +75,21 @@ if (result.success === false) { dispatch(updateUserFailure(result.message)); ret
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+          dispatch(updateUserStart());
     try {
       
-      dispatch(updateUserStart());
+
       //const token = localStorage.getItem("token");
       const token=currentUser?.token||localStorage.getItem("token");
-      if(!token){
-        dispatch(updateUserFailure("User is not authenticated"));
-        return;
-      }
+      const data=new FormData();
+       if (file) data.append("avatar", file);
+    if (formData.username) data.append("username", formData.username);
+    if (formData.email) data.append("email", formData.email);
+    if (formData.password) data.append("password", formData.password);
+     // if(!token){
+       // dispatch(updateUserFailure("User is not authenticated"));
+        //return;
+      //}
       //const data=new FormData();
       //if(file) data.append("avatar",formData.avatar);
       //console.log("Form Data:", formData.avatar);
@@ -92,10 +98,10 @@ if (result.success === false) { dispatch(updateUserFailure(result.message)); ret
       const resp = await fetch(`/api/user/update/${currentUser.user._id}`, {
         method: "PUT",
         headers: {
-         "Content-Type": "application/json",
+        // "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: data,
         //credentials: "include",
         //body:data,
       });
@@ -107,7 +113,7 @@ if (result.success === false) { dispatch(updateUserFailure(result.message)); ret
 dispatch(updateUserSuccess({ user: result.user, token }));
       setUpdateSuccess(true);
     } catch (error) {
-      dispatch(updateUserFailure(error?.message || "update Failed"));
+      dispatch(updateUserFailure(error.message || "update Failed"));
     }
   };
 
@@ -202,12 +208,13 @@ setUserListings((prev)=>
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
-          onChange={(e) => handleFileUpload(e.target.files[0])}
-          type="file"
-          ref={fileRef}
-          hidden
-          accept="image/*"
-        />
+  type="file"
+  hidden
+  ref={fileRef}
+  accept="image/*"
+  onChange={(e) => setFile(e.target.files[0])}
+/>
+
 
         <img
           onClick={() => fileRef.current.click()}
