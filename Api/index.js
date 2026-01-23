@@ -5,6 +5,9 @@ import userRouter from './routes/user.route.js';
 import authRouter from './routes/auth.route.js';
 import listingRouter from './routes/listing.route.js';
 import  cookieParser from 'cookie-parser';
+import chatRoutes from './routes/chat.js';
+
+
 
 dotenv.config();
 const app =express();
@@ -16,6 +19,7 @@ mongoose.connect(process.env.MONGO_URI).then(()=>{
 })
 app.use(express.json());
 app.use(cookieParser());
+app.use('/api/chat', chatRoutes);
 app.listen(3000,()=>{
     console.log("server in 3000");
 });

@@ -10,6 +10,7 @@ import CreateListing from './pages/CreateListing';
 import UpdateListing from './pages/UpdateListing';
 import Listing from './pages/listing';
 import Search from './pages/Search';
+import Chatbot from './components/chatbot';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             element={<UpdateListing />}
           />
         </Route>
+        <Route path='/chatbot' element={<Chatbot />} />
       </Routes>
     </BrowserRouter>
   );

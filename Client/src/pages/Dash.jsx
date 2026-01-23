@@ -209,7 +209,7 @@ setUserListings((prev)=>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
   type="file"
-  hidden
+  //hidden
   ref={fileRef}
   accept="image/*"
   onChange={(e) => setFile(e.target.files[0])}
