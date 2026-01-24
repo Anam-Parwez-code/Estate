@@ -9,9 +9,15 @@ export default function Contact({ listing }) {
   };
 
   useEffect(() => {
+    if(!listing.userRef) return;
     const fetchLandlord = async () => {
       try {
-        const resp = await fetch(`/api/user/${listing.userRef}`);
+        const resp = await fetch(`/api/user/${listing.userRef}`,{
+          credentials: 'include',
+        });
+        if(!resp.ok){
+          throw new Error('Failed to fetch landlord data');
+        }
         const data = await resp.json();
         setLandlord(data);
       } catch (error) {
@@ -38,15 +44,17 @@ export default function Contact({ listing }) {
             placeholder='Enter your message here...'
             className='w-full border p-3 rounded-lg'
           ></textarea>
-
+{landlord.email && (
           <Link
           to={`mailto:${landlord.email}?subject=Regarding ${listing.name}&body=${message}`}
           className='bg-slate-700 text-white text-center p-3 uppercase rounded-lg hover:opacity-95'
           >
             Send Message          
           </Link>
+)}
         </div>
       )}
+    
     </>
   );
 }

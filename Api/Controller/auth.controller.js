@@ -71,7 +71,10 @@ resp.cookie('access_token',token,{httpOnly:true})
 }
 export const signOut=async(req,resp,next) =>{
    try{
-    resp.clearCookie('acess_token');
+    resp.clearCookie('access_token',token,{ httpOnly:true,
+      secure:process.env.NODE_ENV==='production',
+      sameSite:'none',
+     });
     resp.status(200).json('User has been logged out!');
    }
    catch(error){
