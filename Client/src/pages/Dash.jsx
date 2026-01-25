@@ -63,27 +63,34 @@ export default function Profile() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
+  e.preventDefault();
 
-      if (data.success === false) {
-        dispatch(updateUserFailure(data.message));
-        return;
-      }
+  if (!currentUser?._id) {
+    console.log("User not loaded");
+    return;
+  }
 
-      dispatch(updateUserSuccess(data));
-      setUpdateSuccess(true);
-    } catch (err) {
-      dispatch(updateUserFailure(err.message));
+  try {
+    dispatch(updateUserStart());
+    const res = await fetch(`/api/user/update/${currentUser._id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+
+    if (data.success === false) {
+      dispatch(updateUserFailure(data.message));
+      return;
     }
-  };
+
+    dispatch(updateUserSuccess(data));
+    setUpdateSuccess(true);
+  } catch (err) {
+    dispatch(updateUserFailure(err.message));
+  }
+};
 
   const handleDeleteUser = async () => {
     try {
@@ -105,7 +112,10 @@ export default function Profile() {
   const handleSignOut = async () => {
     try {
       dispatch(signOutUserStart());
-      const res = await fetch('/api/auth/signout');
+      const res = await fetch('/api/auth/signout',{
+        credentials: 'include',
+      });
+
       const data = await res.json();
 
       if (data.success === false) {
@@ -120,21 +130,26 @@ export default function Profile() {
   };
 
   const handleShowListings = async () => {
-    try {
-      setShowListingsError(false);
-      const res = await fetch(`/api/user/listings/${currentUser._id}`);
-      const data = await res.json();
+  if (!currentUser?._id) return; // 🔥 ADD THIS
 
-      if (data.success === false) {
-        setShowListingsError(true);
-        return;
-      }
+  try {
+    setShowListingsError(false);
+    const res = await fetch(
+      `/api/user/listings/${currentUser._id}`,
+      { credentials: 'include' } // 👈 ye bhi add
+    );
+    const data = await res.json();
 
-      setUserListings(data);
-    } catch (err) {
+    if (data.success === false) {
       setShowListingsError(true);
+      return;
     }
-  };
+
+    setUserListings(data);
+  } catch (err) {
+    setShowListingsError(true);
+  }
+};
 
   const handleListingDelete = async (listingId) => {
     try {

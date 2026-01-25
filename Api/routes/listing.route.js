@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { createListing, deleteListing, updateListing, getListing, getListings } from '../Controller/listing.cont.js';
-import { verifyToken } from '../utils/verifyUser.js';
+import { verifyToken } from '../utils/verifyToken.js';
 
 const router = express.Router();
 
