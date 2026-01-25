@@ -59,11 +59,14 @@ export default function Header() {
           </Link>
           <Link to='/dash'>
             {currentUser ? (
+              <li>
               <img
                 className='rounded-full h-7 w-7 object-cover'
-                src={currentUser.avatar}
+                src={currentUser.avatar ? currentUser.avatar : '/defaultAvatar.png'}
+  
                 alt='profile'
               />
+              </li>
             ) : (
               <li className=' text-slate-700 hover:underline'> Sign in</li>
             )}

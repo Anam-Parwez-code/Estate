@@ -10,6 +10,7 @@ import {
   signOutUserStart,
 } from '../redux/user/userSlice';
 import { Link } from 'react-router-dom';
+import {useNavigate} from "react-router-dom"
 
 export default function Profile() {
   const fileRef = useRef(null);
@@ -22,7 +23,7 @@ export default function Profile() {
   const [showListingsError, setShowListingsError] = useState(false);
   const [userListings, setUserListings] = useState([]);
   const dispatch = useDispatch();
-
+  const navigate=useNavigate();
   // Upload file to Cloudinary
   const handleFileUpload = async (file) => {
     try {
@@ -74,8 +75,9 @@ export default function Profile() {
     dispatch(updateUserStart());
     const res = await fetch(`/api/user/update/${currentUser._id}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' ,
+      Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(formData),
     });
     const data = await res.json();
@@ -92,22 +94,40 @@ export default function Profile() {
   }
 };
 
-  const handleDeleteUser = async () => {
-    try {
-      dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, { method: 'DELETE' });
-      const data = await res.json();
+  
+const handleDeleteUser = async (userId) => {
+  try {
+    dispatch(deleteUserStart());
 
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data.message));
-        return;
-      }
+    const token = localStorage.getItem("token");
 
-      dispatch(deleteUserSuccess(data));
-    } catch (err) {
-      dispatch(deleteUserFailure(err.message));
+    const res = await fetch(`/api/user/delete/${userId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.success === false) {
+      dispatch(deleteUserFailure(data.message));
+      return;
     }
-  };
+
+    // clear redux + localStorage
+    localStorage.removeItem("token");
+    dispatch(deleteUserSuccess());
+
+    alert("Account deleted successfully");
+
+    navigate("/sign-in");
+
+  } catch (error) {
+    dispatch(deleteUserFailure(error.message));
+  }
+};
+
 
   const handleSignOut = async () => {
     try {
@@ -239,7 +259,7 @@ export default function Profile() {
       </form>
 
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer" onClick={handleDeleteUser}>
+        <span className="text-red-700 cursor-pointer" onClick={() => handleDeleteUser(currentUser._id)}>
           Delete account
         </span>
         <span className="text-red-700 cursor-pointer" onClick={handleSignOut}>

@@ -7,7 +7,7 @@ const router = express.Router();
 // Get current logged-in user
 router.get("/me", verifyToken, async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select("-password"); // hide password
+    const user = await User.findById(req.user.id).select("-password"); // hide password
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
     res.status(200).json(user);
   } catch (err) {
@@ -18,7 +18,7 @@ router.get("/me", verifyToken, async (req, res, next) => {
 // Update user
 router.post("/update/:id", verifyToken, async (req, res, next) => {
   try {
-    if (req.user._id !== req.params.id) return res.status(403).json({ success: false, message: "Forbidden" });
+    if (req.user.id !== req.params.id) return res.status(403).json({ success: false, message: "Forbidden" });
     const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).select("-password");
     res.status(200).json(updatedUser);
   } catch (err) {
@@ -29,8 +29,11 @@ router.post("/update/:id", verifyToken, async (req, res, next) => {
 // Delete user
 router.delete("/delete/:id", verifyToken, async (req, res, next) => {
   try {
-    if (req.user._id !== req.params.id) return res.status(403).json({ success: false, message: "Forbidden" });
+    if (req.user.id !== req.params.id)
+      return res.status(403).json({ success: false, message: "Forbidden" });
+
     await User.findByIdAndDelete(req.params.id);
+
     res.clearCookie("access_token").status(200).json({ success: true });
   } catch (err) {
     next(err);

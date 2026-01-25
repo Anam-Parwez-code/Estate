@@ -22,25 +22,32 @@ export default function App() {
 
   // 🔥 USER HYDRATION (MOST IMPORTANT)
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const res = await fetch('/api/user/me', {
-          credentials: 'include',
-        });
+  const fetchCurrentUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-        const data = await res.json();
+      if (!token) return;
 
-        if (data && data._id) {
-          dispatch(updateUserSuccess(data));
-        }
-      } catch (error) {
-        console.log('User not logged in');
+      const res = await fetch("/api/user/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (data && data._id) {
+        dispatch(updateUserSuccess(data));
       }
-    };
+    } catch (error) {
+      console.log("User not logged in");
+    }
+  };
 
-    fetchCurrentUser();
-  }, [dispatch]);
-
+  fetchCurrentUser();
+}, [dispatch]);
   return (
     <BrowserRouter>
    

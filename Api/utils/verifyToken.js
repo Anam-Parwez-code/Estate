@@ -1,10 +1,17 @@
-
 import jwt from "jsonwebtoken";
 import { errorHandler } from "./err.js";
 
+
 export const verifyToken = (req, res, next) => {
-  const token = req.cookies.access_token; // cookie se
-  if (!token) return next(errorHandler(401, "Unauthorized"));
+  console.log("AUTH HEADER:", req.headers.authorization);
+
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next(errorHandler(401, "Unauthorized"));
+  }
+
+  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -14,4 +21,3 @@ export const verifyToken = (req, res, next) => {
     next(errorHandler(403, "Invalid token"));
   }
 };
-
