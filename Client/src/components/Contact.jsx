@@ -29,8 +29,9 @@ export default function Contact({ listing }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          //"Authorization": `Bearer ${localStorage.getItem("token")}`
         },
+        credentials: "include", // Include cookies for authentication
         body: JSON.stringify({
           receiverId: listing.userRef,
           listingId: listing._id,
