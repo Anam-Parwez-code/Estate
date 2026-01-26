@@ -30,15 +30,10 @@ export default function Listing() {
 
   useEffect(() => {
     const fetchListing = async () => {
-      if (!params.listingId) {
-        console.log('No listing ID provided');
-      
-        return;
-      }
       try {
         setLoading(true);
-        const resp = await fetch(`/api/listing/get/${params.listingId}`);
-        const data = await resp.json();
+        const res = await fetch(`/api/listing/get/${params.listingId}`);
+        const data = await res.json();
         if (data.success === false) {
           setError(true);
           setLoading(false);

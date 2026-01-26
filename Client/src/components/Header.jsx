@@ -57,23 +57,17 @@ export default function Header() {
               About
             </li>
           </Link>
-          <Link to='/dash'>
+          <Link to='/profile'>
             {currentUser ? (
-              <li>
               <img
                 className='rounded-full h-7 w-7 object-cover'
-                src={currentUser.avatar ? currentUser.avatar : '/defaultAvatar.png'}
-  
+                src={currentUser.avatar}
                 alt='profile'
               />
-              </li>
             ) : (
               <li className=' text-slate-700 hover:underline'> Sign in</li>
             )}
           </Link>
-          <Link to="/chatbot">
-        <li className='hidden sm:inline text-slate-700 hover:underline'>Chatbot AI</li>
-        </Link>
         </ul>
       </div>
     </header>

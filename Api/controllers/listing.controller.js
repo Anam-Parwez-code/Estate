@@ -1,16 +1,16 @@
-import Listing from '../Models/listing.model.js';
-import { errorHandler } from '../utils/err.js';
+import Listing from '../models/listing.model.js';
+import { errorHandler } from '../utils/error.js';
 
-export const createListing = async (req, resp, next) => {
+export const createListing = async (req, res, next) => {
   try {
     const listing = await Listing.create(req.body);
-    return resp.status(201).json(listing);
+    return res.status(201).json(listing);
   } catch (error) {
     next(error);
   }
 };
 
-export const deleteListing = async (req, resp, next) => {
+export const deleteListing = async (req, res, next) => {
   const listing = await Listing.findById(req.params.id);
 
   if (!listing) {
@@ -23,13 +23,13 @@ export const deleteListing = async (req, resp, next) => {
 
   try {
     await Listing.findByIdAndDelete(req.params.id);
-    resp.status(200).json('Listing has been deleted!');
+    res.status(200).json('Listing has been deleted!');
   } catch (error) {
     next(error);
   }
 };
 
-export const updateListing = async (req, resp, next) => {
+export const updateListing = async (req, res, next) => {
   const listing = await Listing.findById(req.params.id);
   if (!listing) {
     return next(errorHandler(404, 'Listing not found!'));
@@ -44,25 +44,25 @@ export const updateListing = async (req, resp, next) => {
       req.body,
       { new: true }
     );
-    resp.status(200).json(updatedListing);
+    res.status(200).json(updatedListing);
   } catch (error) {
     next(error);
   }
 };
 
-export const getListing = async (req, resp, next) => {
+export const getListing = async (req, res, next) => {
   try {
     const listing = await Listing.findById(req.params.id);
     if (!listing) {
       return next(errorHandler(404, 'Listing not found!'));
     }
-    resp.status(200).json(listing);
+    res.status(200).json(listing);
   } catch (error) {
     next(error);
   }
 };
 
-export const getListings = async (req, resp, next) => {
+export const getListings = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 9;
     const startIndex = parseInt(req.query.startIndex) || 0;
@@ -107,7 +107,7 @@ export const getListings = async (req, resp, next) => {
       .limit(limit)
       .skip(startIndex);
 
-    return resp.status(200).json(listings);
+    return res.status(200).json(listings);
   } catch (error) {
     next(error);
   }
