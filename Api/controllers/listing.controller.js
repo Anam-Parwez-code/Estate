@@ -1,14 +1,23 @@
 import Listing from '../models/listing.model.js';
 import { errorHandler } from '../utils/error.js';
 
-export const createListing = async (req, res, next) => {
+
+// Create new listing
+export const createListing = async (req, res) => {
   try {
-    const listing = await Listing.create(req.body);
-    return res.status(201).json(listing);
-  } catch (error) {
-    next(error);
+    const newListing = new Listing({
+      ...req.body,
+      userRef: req.user.id, // yahan se sahi user id set hogi
+    });
+
+    await newListing.save();
+    res.status(201).json(newListing);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error creating listing" });
   }
 };
+
 
 export const deleteListing = async (req, res, next) => {
   const listing = await Listing.findById(req.params.id);

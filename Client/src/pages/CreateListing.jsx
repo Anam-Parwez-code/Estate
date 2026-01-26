@@ -1,11 +1,4 @@
 import { useState } from 'react';
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from 'firebase/storage';
-import { app } from '../firebase';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -31,60 +24,58 @@ export default function CreateListing() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-  console.log(formData);
-  const handleImageSubmit = (e) => {
+
+  const handleImageSubmit = async (e) => {
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
       setUploading(true);
       setImageUploadError(false);
-      const promises = [];
-
-      for (let i = 0; i < files.length; i++) {
-        promises.push(storeImage(files[i]));
-      }
-      Promise.all(promises)
-        .then((urls) => {
-          setFormData({
-            ...formData,
-            imageUrls: formData.imageUrls.concat(urls),
-          });
-          setImageUploadError(false);
-          setUploading(false);
-        })
-        .catch((err) => {
-          setImageUploadError('Image upload failed (2 mb max per image)');
-          setUploading(false);
+      
+      try {
+        const urls = [];
+        for (let i = 0; i < files.length; i++) {
+          const url = await storeImage(files[i]);
+          urls.push(url);
+        }
+        
+        setFormData({
+          ...formData,
+          imageUrls: formData.imageUrls.concat(urls),
         });
+        setUploading(false);
+      } catch (err) {
+        console.error(err);
+        setImageUploadError('Image upload failed (2 mb max per image)');
+        setUploading(false);
+      }
     } else {
       setImageUploadError('You can only upload 6 images per listing');
       setUploading(false);
     }
   };
 
+  // Cloudinary image upload function
   const storeImage = async (file) => {
-    return new Promise((resolve, reject) => {
-      const storage = getStorage(app);
-      const fileName = new Date().getTime() + file.name;
-      const storageRef = ref(storage, fileName);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`Upload is ${progress}% done`);
-        },
-        (error) => {
-          reject(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            resolve(downloadURL);
-          });
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'estate_preset'); // Replace with your Cloudinary upload preset
+    
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload`, // Replace with your Cloudinary cloud name
+        {
+          method: 'POST',
+          body: formData,
         }
       );
-    });
+      
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      throw new Error('Failed to upload image');
+    }
   };
 
+  // Rest of the code remains the same...
   const handleRemoveImage = (index) => {
     setFormData({
       ...formData,
@@ -153,6 +144,10 @@ export default function CreateListing() {
       setLoading(false);
     }
   };
+
+  // JSX remains unchanged...
+  
+
   return (
     <main className='p-3 max-w-4xl mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>

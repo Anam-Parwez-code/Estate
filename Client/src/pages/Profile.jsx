@@ -42,29 +42,46 @@ export default function Profile() {
     }
   }, [file]);
 
-  const handleFileUpload = (file) => {
-    const storage = getStorage(app);
-    const fileName = new Date().getTime() + file.name;
-    const storageRef = ref(storage, fileName);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+  const handleFileUpload = async (file) => {
+  try {
+    const formDataCloud = new FormData();
+    formDataCloud.append("file", file);
+    formDataCloud.append("upload_preset", "estate_preset"); // from Cloudinary
 
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setFilePerc(Math.round(progress));
-      },
-      (error) => {
-        setFileUploadError(true);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
-          setFormData({ ...formData, avatar: downloadURL })
-        );
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload`,
+      {
+        method: "POST",
+        body: formDataCloud,
       }
     );
-  };
+
+    const data = await res.json();
+    if (data.secure_url) {
+      // Update both profile formData and redux user state
+      setFormData({ ...formData, avatar: data.secure_url });
+
+      // Dispatch update to backend so DB stores new avatar
+      dispatch(updateUserStart());
+      const updateRes = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar: data.secure_url }),
+      });
+      const updateData = await updateRes.json();
+
+      if (updateData.success === false) {
+        dispatch(updateUserFailure(updateData.message));
+        return;
+      }
+      dispatch(updateUserSuccess(updateData));
+      setUpdateSuccess(true);
+    }
+  } catch (err) {
+    setFileUploadError(true);
+    console.error(err);
+  }
+};
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
