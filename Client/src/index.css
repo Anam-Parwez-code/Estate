@@ -1,6 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body{
-    background-color:rgb(196, 241, 196);
+
+body {
+    background-color: rgb(196, 241, 196);
+}
+
+/* Markdown Styling for AI Chat */
+.markdown-content a {
+    @apply text-blue-600 underline font-bold hover:text-blue-800 transition-colors;
+    /* Agar tailwind apply na ho toh fallback: */
+    color: #2563eb !important;
+    text-decoration: underline !important;
+}
+
+.markdown-content img {
+    @apply rounded-xl shadow-md my-3 border border-gray-200;
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    display: block;
+}
+
+.markdown-content p {
+    @apply mb-2 leading-relaxed text-gray-800;
+}
+
+.markdown-content strong {
+    @apply font-semibold text-gray-900;
 }
