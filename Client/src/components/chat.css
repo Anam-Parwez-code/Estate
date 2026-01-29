@@ -1,0 +1,72 @@
+/* Main Floating Button */
+.chat-toggle-btn {
+    padding: 15px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+}
+
+.chat-toggle-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Chat Window */
+.chat-window {
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    width: 380px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+}
+
+/* Messages Area */
+.chat-body {
+    height: 400px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* RTL-LTR Smart Bubbles */
+.msg-container {
+    unicode-bidi: plaintext;
+    text-align: start;
+    max-width: 90%;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.user-msg {
+    align-self: flex-end;
+    background-color: #007bff;
+    color: white;
+    border-radius: 15px 15px 0 15px;
+}
+
+.ai-msg {
+    align-self: flex-start;
+    background-color: #f1f1f1;
+    color: #333;
+    border-radius: 15px 15px 15px 0;
+}
+
+/* Scrollbar Customization */
+.chat-body::-webkit-scrollbar {
+    width: 6px;
+}
+.chat-body::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 10px;
+}

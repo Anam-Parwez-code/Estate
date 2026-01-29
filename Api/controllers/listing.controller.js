@@ -5,19 +5,24 @@ import { errorHandler } from '../utils/error.js';
 // Create new listing
 export const createListing = async (req, res) => {
   try {
+    console.log("Python se aane wala data:", req.body);
     const newListing = new Listing({
       ...req.body,
-      userRef: req.user.id, // yahan se sahi user id set hogi
+      // Forcefully set fields if they exist in req.body
+      originalCurrency: req.body.originalCurrency || 'INR',
+      originalRegularPrice: req.body.originalRegularPrice || req.body.regularPrice,
+      originalDiscountPrice: req.body.originalDiscountPrice || req.body.discountPrice,
+      userRef: req.user.id,
+       // yahan se sahi user id set hogi
     });
 
-    await newListing.save();
-    res.status(201).json(newListing);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error creating listing" });
+    const savedListing = await newListing.save();
+    return res.status(201).json(savedListing);
+  } catch (error) {
+    console.error("Node side error:", error);
+    next(error); 
   }
 };
-
 
 export const deleteListing = async (req, res, next) => {
   const listing = await Listing.findById(req.params.id);
@@ -106,7 +111,11 @@ export const getListings = async (req, res, next) => {
     const order = req.query.order || 'desc';
 
     const listings = await Listing.find({
-      name: { $regex: searchTerm, $options: 'i' },
+      // NAYA LOGIC: Name YA Address dono mein search karo
+      $or: [
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { address: { $regex: searchTerm, $options: 'i' } },
+      ],
       offer,
       furnished,
       parking,
@@ -117,6 +126,16 @@ export const getListings = async (req, res, next) => {
       .skip(startIndex);
 
     return res.status(200).json(listings);
+  } catch (error) {
+    next(error);
+  }
+};
+export const getAllForChatbot = async (req, res, next) => {
+  try {
+    // Bina kisi condition aur limit ke saari listings fetch karein
+    const listings = await Listing.find({}); 
+    console.log(`Chatbot fetching: ${listings.length} listings found.`);
+    res.status(200).json(listings);
   } catch (error) {
     next(error);
   }

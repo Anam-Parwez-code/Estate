@@ -43,40 +43,64 @@ export default function SignIn() {
       dispatch(signInFailure(error.message));
     }
   };
-  return (
-    <div className='p-3 max-w-lg mx-auto'>
-      <h1 className='text-3xl text-center font-semibold my-7'>Sign In</h1>
-      <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-        <input
-          type='email'
-          placeholder='email'
-          className='border p-3 rounded-lg'
-          id='email'
-          onChange={handleChange}
-        />
-        <input
-          type='password'
-          placeholder='password'
-          className='border p-3 rounded-lg'
-          id='password'
-          onChange={handleChange}
-        />
+return (
+    <div className='bg-primary min-h-screen flex items-center justify-center p-3'>
+      <div className='max-w-lg w-full bg-slate-800/30 p-8 rounded-3xl border border-slate-700 shadow-2xl'>
+        <h1 className='text-3xl text-center font-bold my-7 text-white'>
+          Welcome <span className='text-accent'>Back</span>
+        </h1>
+        
+        <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
+          <div className='flex flex-col gap-1'>
+            <label className='text-slate-400 text-xs ml-1'>Email Address</label>
+            <input
+              type='email'
+              placeholder='name@example.com'
+              className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all'
+              id='email'
+              onChange={handleChange}
+            />
+          </div>
 
-        <button
-          disabled={loading}
-          className='bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80'
-        >
-          {loading ? 'Loading...' : 'Sign In'}
-        </button>
-        <OAuth/>
-      </form>
-      <div className='flex gap-2 mt-5'>
-        <p>Dont have an account?</p>
-        <Link to={'/sign-up'}>
-          <span className='text-blue-700'>Sign up</span>
-        </Link>
+          <div className='flex flex-col gap-1'>
+            <label className='text-slate-400 text-xs ml-1'>Password</label>
+            <input
+              type='password'
+              placeholder='••••••••'
+              className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all'
+              id='password'
+              onChange={handleChange}
+            />
+          </div>
+
+          <button
+            disabled={loading}
+            className='bg-accent text-primary font-bold p-3 rounded-xl uppercase hover:opacity-90 disabled:opacity-80 transition-all shadow-lg mt-2'
+          >
+            {loading ? 'Authenticating...' : 'Sign In'}
+          </button>
+          
+          <div className='relative my-2'>
+            <div className='absolute inset-0 flex items-center'><span className='w-full border-t border-slate-700'></span></div>
+            <div className='relative flex justify-center text-xs uppercase'><span className='bg-slate-900 px-2 text-slate-500'>Or continue with</span></div>
+          </div>
+
+          <OAuth/>
+        </form>
+
+        <div className='flex justify-center gap-2 mt-6 text-sm'>
+          <p className='text-slate-400'>Don't have an account?</p>
+          <Link to={'/sign-up'}>
+            <span className='text-accent hover:underline font-semibold'>Sign up</span>
+          </Link>
+        </div>
+
+        {error && (
+          <div className='mt-5 p-3 bg-red-500/10 border border-red-500/20 rounded-lg'>
+            <p className='text-red-400 text-center text-sm'>{error}</p>
+          </div>
+        )}
       </div>
-      {error && <p className='text-red-500 mt-5'>{error}</p>}
     </div>
   );
 }
