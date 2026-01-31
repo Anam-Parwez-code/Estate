@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Home from './pages/Home';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -13,6 +15,21 @@ import Search from './pages/Search';
 import Inbox from './components/Inbox';
 
 export default function App() {
+  const { i18n } = useTranslation();
+
+  // 3. Ye Effect poori website ka "Rukh" badal dega
+  useEffect(() => {
+    // Agar language 'ar' (Arabic) hai toh 'rtl', warna 'ltr'
+    const direction = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.body.dir = direction;
+    
+    // Arabic ke liye font thoda behtar kar dete hain (Optional)
+    if (i18n.language === 'ar') {
+      document.body.style.fontFamily = "'Noto Sans Arabic', sans-serif";
+    } else {
+      document.body.style.fontFamily = "'Nunito', sans-serif"; // Aapka purana font
+    }
+  }, [i18n.language]);
   return (
     <BrowserRouter>
       <Header />

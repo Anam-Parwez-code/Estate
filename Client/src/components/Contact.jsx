@@ -24,14 +24,12 @@ export default function Contact({ listing }) {
   }, [listing.userRef]);
 
   const handleSend = async () => {
+    if (!message.trim()) return alert("Please type a message first.");
     try {
       const res = await fetch("http://localhost:3000/api/message/send", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          //"Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        credentials: "include", // Include cookies for authentication
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           receiverId: listing.userRef,
           listingId: listing._id,
@@ -40,38 +38,47 @@ export default function Contact({ listing }) {
       });
 
       const data = await res.json();
-      console.log("Message sent:", data);
-      alert("Message sent successfully!");
+      alert("Your royal inquiry has been sent!");
       setMessage('');
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error:", error);
     }
   };
 
   return (
     <>
       {landlord && (
-        <div className='flex flex-col gap-2'>
-          <p>
-            Contact <span className='font-semibold'>{landlord.username}</span>{' '}
-            for{' '}
-            <span className='font-semibold'>{listing.name.toLowerCase()}</span>
-          </p>
-          <textarea
-            name='message'
-            id='message'
-            rows='2'
-            value={message}
-            onChange={onChange}
-            placeholder='Enter your message here...'
-            className='w-full border p-3 rounded-lg'
-          ></textarea>
+        <div className='flex flex-col gap-4 mt-6 p-6 bg-slate-800/40 border border-slate-700 rounded-3xl backdrop-blur-sm animate-fadeIn'>
+          <div className='flex flex-col gap-1'>
+             <p className='text-slate-400 text-sm uppercase tracking-widest font-bold'>
+               Inquiry for: <span className='text-accent'>{listing.name}</span>
+             </p>
+             <p className='text-white text-lg'>
+               Contacting <span className='font-bold text-white italic'>{landlord.username}</span>
+             </p>
+          </div>
+
+          <div className='relative'>
+            <textarea
+              name='message'
+              id='message'
+              rows='3'
+              value={message}
+              onChange={onChange}
+              placeholder='I am interested in this property. Please provide more details...'
+              className='w-full bg-slate-900/50 border border-slate-700 text-slate-200 p-4 rounded-2xl outline-none focus:border-accent transition-all resize-none shadow-inner'
+            ></textarea>
+            {/* Subtle Label inside textarea look */}
+            <div className='absolute bottom-3 right-4 text-[10px] text-slate-600 uppercase font-bold tracking-tighter'>
+              Secure Messaging
+            </div>
+          </div>
 
           <button
             onClick={handleSend}
-            className='bg-slate-700 text-white text-center p-3 uppercase rounded-lg hover:opacity-95'
+            className='bg-accent text-primary font-extrabold text-center p-4 uppercase rounded-2xl hover:scale-[1.01] active:scale-95 transition-all shadow-xl shadow-accent/10'
           >
-            Send Message
+            Send Inquiry
           </button>
         </div>
       )}

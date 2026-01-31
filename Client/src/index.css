@@ -3,7 +3,12 @@
 @tailwind utilities;
 
 body {
-    background-color: rgb(196, 241, 196);
+   background-color: #0f172a; /* Aapka Primary Dark Blue Color */
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  scroll-behavior: smooth;
+
 }
 
 /* Markdown Styling for AI Chat */
