@@ -80,6 +80,13 @@ export default function SignUp() {
             />
           </div>
 
+             <input
+  type='text'
+  placeholder='WhatsApp Number (e.g. 919876543210)'
+  className='border p-3 rounded-lg'
+  id='phone'
+  onChange={handleChange}
+/>
           <button
             disabled={loading}
             className='bg-accent text-primary font-bold p-3 rounded-xl uppercase hover:opacity-90 disabled:opacity-80 transition-all shadow-lg mt-2'

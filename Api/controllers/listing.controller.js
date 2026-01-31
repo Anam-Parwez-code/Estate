@@ -80,41 +80,34 @@ export const getListings = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 9;
     const startIndex = parseInt(req.query.startIndex) || 0;
+    
+    // Default filters
     let offer = req.query.offer;
-
-    if (offer === undefined || offer === 'false') {
-      offer = { $in: [false, true] };
-    }
+    if (offer === undefined || offer === 'false') offer = { $in: [false, true] };
 
     let furnished = req.query.furnished;
-
-    if (furnished === undefined || furnished === 'false') {
-      furnished = { $in: [false, true] };
-    }
+    if (furnished === undefined || furnished === 'false') furnished = { $in: [false, true] };
 
     let parking = req.query.parking;
-
-    if (parking === undefined || parking === 'false') {
-      parking = { $in: [false, true] };
-    }
+    if (parking === undefined || parking === 'false') parking = { $in: [false, true] };
 
     let type = req.query.type;
-
-    if (type === undefined || type === 'all') {
-      type = { $in: ['sale', 'rent'] };
-    }
+    if (type === undefined || type === 'all') type = { $in: ['sale', 'rent'] };
 
     const searchTerm = req.query.searchTerm || '';
+    
+    // SMART LOGIC: Har word ko alag alag search karne ke liye split karein
+    const keywords = searchTerm.split(' ').filter(word => word !== '').join('|');
 
     const sort = req.query.sort || 'createdAt';
-
     const order = req.query.order || 'desc';
 
     const listings = await Listing.find({
-      // NAYA LOGIC: Name YA Address dono mein search karo
+      // ROYAL SEARCH: Name, Address YA Description teeno mein match dhoondo
       $or: [
-        { name: { $regex: searchTerm, $options: 'i' } },
-        { address: { $regex: searchTerm, $options: 'i' } },
+        { name: { $regex: keywords, $options: 'i' } },
+        { address: { $regex: keywords, $options: 'i' } },
+        { description: { $regex: keywords, $options: 'i' } },
       ],
       offer,
       furnished,

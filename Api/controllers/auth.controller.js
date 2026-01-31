@@ -2,11 +2,16 @@ import User from '../models/user.model.js';
 import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import jwt from 'jsonwebtoken';
-import cookieParser from 'cookie-parser';
+
 export const signup = async (req, res, next) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, phone } = req.body;
   const hashedPassword = bcryptjs.hashSync(password, 10);
-  const newUser = new User({ username, email, password: hashedPassword });
+  const newUser = new User({ 
+    username, 
+    email, 
+    password: hashedPassword, 
+    phone: phone || "" 
+  });
   try {
     await newUser.save();
     res.status(201).json('User created successfully!');
@@ -20,12 +25,23 @@ export const signin = async (req, res, next) => {
   try {
     const validUser = await User.findOne({ email });
     if (!validUser) return next(errorHandler(404, 'User not found!'));
+    
     const validPassword = bcryptjs.compareSync(password, validUser.password);
     if (!validPassword) return next(errorHandler(401, 'Wrong credentials!'));
-    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+
+    // Token with 30 days expiry
+    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    
     const { password: pass, ...rest } = validUser._doc;
+    
+    // Cookie expiry date (30 days from now)
+    const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
     res
-      .cookie('access_token', token, { httpOnly: true })
+      .cookie('access_token', token, { 
+        httpOnly: true, 
+        expires: expiryDate 
+      })
       .status(200)
       .json(rest);
   } catch (error) {
@@ -36,31 +52,35 @@ export const signin = async (req, res, next) => {
 export const google = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email });
+    const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
     if (user) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      // Yahan 'user' use hoga kyunki upar variable ka naam 'user' hai
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
       const { password: pass, ...rest } = user._doc;
       res
-        .cookie('access_token', token, { httpOnly: true })
+        .cookie('access_token', token, { httpOnly: true, expires: expiryDate })
         .status(200)
         .json(rest);
     } else {
-      const generatedPassword =
-        Math.random().toString(36).slice(-8) +
-        Math.random().toString(36).slice(-8);
+      const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
       const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+      
       const newUser = new User({
-        username:
-          req.body.name.split(' ').join('').toLowerCase() +
-          Math.randm().toString(36).slice(-4),
+        username: req.body.name.split(' ').join('').toLowerCase() + Math.random().toString(36).slice(-4),
         email: req.body.email,
         password: hashedPassword,
         avatar: req.body.photo,
       });
+      
       await newUser.save();
-      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      
+      // New user ke liye bhi 30d expiry
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
       const { password: pass, ...rest } = newUser._doc;
+      
       res
-        .cookie('access_token', token, { httpOnly: true })
+        .cookie('access_token', token, { httpOnly: true, expires: expiryDate })
         .status(200)
         .json(rest);
     }

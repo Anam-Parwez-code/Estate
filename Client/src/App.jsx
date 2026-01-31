@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Home from './pages/Home';
@@ -31,6 +32,7 @@ export default function App() {
     }
   }, [i18n.language]);
   return (
+    <HelmetProvider>
     <BrowserRouter>
       <Header />
       <Routes>
@@ -52,5 +54,7 @@ export default function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </HelmetProvider>
+
   );
 }

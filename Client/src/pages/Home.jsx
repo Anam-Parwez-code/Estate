@@ -1,3 +1,4 @@
+import {Helmet} from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -49,7 +50,15 @@ export default function Home() {
 
   
                   return (
+                    
     <div className='bg-primary min-h-screen'> {/* Poora background Navy Blue */}
+      <Helmet>
+        <title>Royal Estate | Luxury Villas & Properties</title>
+        <meta
+          name='description'
+          content="Discover the finest luxury real estate with Royal Estate. Premier properties in Saudi Arabia, UAE,Europe,India and worldwide For Rent and Sale ."
+        />
+      </Helmet>
       {/* top */}
       <div className='flex flex-col gap-6 p-28 px-3 max-w-6xl mx-auto'>
         <h1 className='text-white font-bold text-3xl lg:text-6xl'> {/* text-white kiya */}
@@ -58,7 +67,7 @@ export default function Home() {
           place with ease
         </h1>
         <div className='text-slate-400 text-xs sm:text-sm'> {/* text-slate-400 for readability */}
-          Sahand Estate is the best place to find your next perfect place to live.
+          Royal Estate is the best place to find your next perfect place to live.
           <br />
           We have a wide range of properties for you to choose from.
         </div>

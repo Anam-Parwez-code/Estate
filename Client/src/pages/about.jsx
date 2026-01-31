@@ -12,7 +12,7 @@ export default function About() {
         
         {/* Text ko white aur slate-300 ke darmiyan rakha taake parhne mein asani ho */}
         <p className='mb-6 text-white text-lg leading-relaxed'>
-          Sahand Estate is a leading real estate agency that specializes in helping clients buy, sell, and rent properties in the most desirable neighborhoods. Our team of experienced agents is dedicated to providing exceptional service and making the buying and selling process as smooth as possible.
+          Royal Estate is a leading real estate agency that specializes in helping clients buy, sell, and rent properties in the most desirable neighborhoods. Our team of experienced agents is dedicated to providing exceptional service and making the buying and selling process as smooth as possible.
         </p>
         
         <p className='mb-6 text-slate-300 leading-relaxed'>
