@@ -71,7 +71,7 @@ const AIChat = () => {
           {chat.length === 0 && (
             <div className="text-center text-slate-500 mt-20">
               <FaRobot className="mx-auto text-4xl mb-2 opacity-20" />
-              <p className="text-sm">Assalam-o-Alaikum! How can I assist your property search today?</p>
+              <p className="text-sm">Hii.. How can I assist your property search today?</p>
             </div>
           )}
           
@@ -117,7 +117,7 @@ const AIChat = () => {
             value={msg} 
             onChange={(e) => setMsg(e.target.value)} 
             onKeyPress={(e) => e.key === 'Enter' && handleAsk()}
-            placeholder="Puchiye apna sawal..." 
+            placeholder="Type your message...(eg:show flat in Saudi Arabia)" 
             className="flex-1 bg-slate-900 border border-slate-700 text-white p-3 rounded-xl outline-none focus:border-accent text-sm transition-all"
             style={{ unicodeBidi: 'plaintext', textAlign: 'start' }}
           />

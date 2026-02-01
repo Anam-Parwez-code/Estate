@@ -62,6 +62,7 @@ export default function SignIn() {
               placeholder='name@example.com'
               className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all'
               id='email'
+              autoComplete="off"
               onChange={handleChange}
             />
           </div>
@@ -73,6 +74,7 @@ export default function SignIn() {
               placeholder='••••••••'
               className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all'
               id='password'
+              autoComplete="new-password"
               onChange={handleChange}
             />
           </div>

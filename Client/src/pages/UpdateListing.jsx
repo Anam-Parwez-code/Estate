@@ -40,9 +40,9 @@ export default function UpdateListing() {
       
       setFormData({
         ...data,
-        regularPrice: data.originalRegularPrice || data.regularPrice,
-        discountPrice: data.originalDiscountPrice || data.discountPrice,
-        currency: data.originalCurrency || 'INR', 
+         regularPrice: data.regularPrice,
+         discountPrice: data.discountPrice,
+         currency: data.currency || 'INR',
       });
     };
 
@@ -185,12 +185,13 @@ export default function UpdateListing() {
                 <input type='number' id='bathrooms' min='1' max='10' required className='p-3 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-accent w-20' onChange={handleChange} value={formData.bathrooms} />
                 <p className='text-slate-300 font-medium'>{t('label_baths')}</p>
               </div>
+              
 
               <div className='flex items-center gap-2'>
                 <input type='number' id='regularPrice' min='50' max='10000000' required className='p-3 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-accent' onChange={handleChange} value={formData.regularPrice} />
                 <div className='flex flex-col items-start text-slate-300'>
                   <p className='text-sm font-semibold'>{t('label_regular_price')}</p>
-                  {formData.type === 'rent' && <span className='text-[10px] text-slate-500'>({formData.currency || 'INR'} / {t('unit_month')})</span>}
+                  {formData.type === 'rent' && <span className='text-[10px] text-slate-500'>{formData.currency} / {t('unit_month')}</span>}
                 </div>
               </div>
 

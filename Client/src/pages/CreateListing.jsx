@@ -182,6 +182,36 @@ export default function CreateListing() {
                 <span>{t('feat_offer')}</span>
               </div>
             </div>
+            {/* --- Naya Section: Bedrooms & Bathrooms --- */}
+<div className='flex flex-wrap gap-6 bg-slate-800/20 p-4 rounded-xl border border-slate-700/50 mt-2'>
+  <div className='flex items-center gap-3'>
+    <input 
+      type='number' 
+      id='bedrooms' 
+      min='1' 
+      max='10' 
+      required 
+      className='p-3 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-accent w-20' 
+      onChange={handleChange} 
+      value={formData.bedrooms} 
+    />
+    <p className='text-slate-300 font-semibold'>{t('label_beds') || 'Beds'}</p>
+  </div>
+  <div className='flex items-center gap-3'>
+    <input 
+      type='number' 
+      id='bathrooms' 
+      min='1' 
+      max='10' 
+      required 
+      className='p-3 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-accent w-20' 
+      onChange={handleChange} 
+      value={formData.bathrooms} 
+    />
+    <p className='text-slate-300 font-semibold'>{t('label_baths') || 'Baths'}</p>
+  </div>
+</div>
+{/* --- Section Khatam --- */}
 
             {/* Price & Currency Section */}
             <div className='flex flex-wrap gap-6 border-t border-slate-700 pt-6'>
@@ -231,7 +261,7 @@ export default function CreateListing() {
                   <div className='flex flex-col items-start text-accent'>
                     <p className='text-sm font-semibold'>{t('label_disc_price')}</p>
                     {formData.type === 'rent' && (
-                      <span className='text-[10px] text-accent/70'>({formData.currency} / {t('month')})</span>
+                      <span className='text-[10px] text-accent/70'>({formData.currency})</span>
                     )}
                   </div>
                 </div>
