@@ -1,19 +1,20 @@
 import { Link } from 'react-router-dom';
 import { MdLocationOn } from 'react-icons/md';
+import { useTranslation } from 'react-i18next'; // 1. Import
 
 export default function ListingItem({ listing }) {
-  // Helper function to get currency symbol (logic same)
+  const { t, i18n } = useTranslation(); // 2. Initialize
+
   const getSymbol = (curr) => {
     const symbols = {
-      'INR': '₹',
-      'SAR': 'SR',
-      'AED': 'AED',
-      'GBP': '£',
-      'EUR': '€',
-      'USD': '$'
+      'INR': '₹', 'SAR': 'SR', 'AED': 'AED',
+      'GBP': '£', 'EUR': '€', 'USD': '$'
     };
     return symbols[curr] || '₹';
   };
+
+  // Arabic ke liye price format fix karne ke liye locale check
+  const currentLocale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
 
   return (
     <div className='bg-slate-800/40 border border-slate-700/50 shadow-xl hover:shadow-accent/10 transition-all overflow-hidden rounded-2xl w-full sm:w-[330px] group'>
@@ -22,14 +23,14 @@ export default function ListingItem({ listing }) {
           <img
             src={
               listing.imageUrls[0] ||
-              'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg?width=595&height=400&name=real-estate-business-compressor.jpg'
+              'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg'
             }
             alt='listing cover'
             className='h-[320px] sm:h-[220px] w-full object-cover group-hover:scale-110 transition-transform duration-500'
           />
-          {/* Badge for Type */}
+          {/* --- TRANSLATED BADGE --- */}
           <div className='absolute top-3 left-3 bg-primary/80 backdrop-blur-sm text-accent text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-accent/30'>
-            For {listing.type}
+            {t('badge_for')} {listing.type === 'rent' ? t('type_rent') : t('type_sale')}
           </div>
         </div>
 
@@ -49,32 +50,37 @@ export default function ListingItem({ listing }) {
             {listing.description}
           </p>
           
-          {/* --- ROYAL PRICE SECTION --- */}
           <div className='flex items-center justify-between mt-2'>
             <p className='text-accent font-bold text-xl'>
               <span className='text-sm align-top mr-1'>{getSymbol(listing.currency)}</span>
               {listing.offer
-                ? listing.discountPrice.toLocaleString('en-US')
-                : listing.regularPrice.toLocaleString('en-US')}
-              {listing.type === 'rent' && <span className='text-xs text-slate-400 font-normal'> / mo</span>}
+                ? listing.discountPrice.toLocaleString(currentLocale)
+                : listing.regularPrice.toLocaleString(currentLocale)}
+              {listing.type === 'rent' && (
+                <span className='text-xs text-slate-400 font-normal'> {t('unit_mo')}</span>
+              )}
             </p>
             
             {listing.offer && (
               <span className='bg-green-500/10 text-green-400 text-[10px] px-2 py-1 rounded border border-green-500/20 uppercase font-bold'>
-                Offer
+                {t('type_offer')}
               </span>
             )}
           </div>
           
-          {/* Features Divider */}
+          {/* --- TRANSLATED FEATURES (BEDS/BATHS) --- */}
           <div className='border-t border-slate-700/50 mt-1 pt-3 flex gap-4 text-slate-300'>
             <div className='flex items-center gap-1 text-xs font-semibold'>
               <span className='text-accent'>•</span>
-              {listing.bedrooms > 1 ? `${listing.bedrooms} Beds` : `${listing.bedrooms} Bed`}
+              {listing.bedrooms > 1 
+                ? t('feature_beds', { count: listing.bedrooms }) 
+                : t('feature_beds_one', { count: 1 })}
             </div>
             <div className='flex items-center gap-1 text-xs font-semibold'>
               <span className='text-accent'>•</span>
-              {listing.bathrooms > 1 ? `${listing.bathrooms} Baths` : `${listing.bathrooms} Bath`}
+              {listing.bathrooms > 1 
+                ? t('feature_baths', { count: listing.bathrooms }) 
+                : t('feature_baths_one', { count: 1 })}
             </div>
           </div>
         </div>

@@ -1,18 +1,22 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import OAuth from '../components/OAuth';
+import { useTranslation } from 'react-i18next'; // 1. Import Hook
 
 export default function SignUp() {
+  const { t } = useTranslation(); // 2. Initialize Hook
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -25,7 +29,6 @@ export default function SignUp() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log(data);
       if (data.success === false) {
         setLoading(false);
         setError(data.message);
@@ -39,27 +42,30 @@ export default function SignUp() {
       setError(error.message);
     }
   };
+
   return (
     <div className='bg-primary min-h-screen flex items-center justify-center p-3'>
       <div className='max-w-lg w-full bg-slate-800/30 p-8 rounded-3xl border border-slate-700 shadow-2xl'>
         <h1 className='text-3xl text-center font-bold my-7 text-white'>
-          Create <span className='text-accent'>Account</span>
+          {t('signup_title').split(' ')[0]} <span className='text-accent'>{t('signup_title').split(' ')[1]}</span>
         </h1>
         
         <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
+          {/* Username */}
           <div className='flex flex-col gap-1'>
-            <label className='text-slate-400 text-xs ml-1'>Username</label>
+            <label className='text-slate-400 text-xs ml-1'>{t('label_username')}</label>
             <input
               type='text'
-              placeholder='your_name'
+              placeholder={t('ph_username')}
               className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all'
               id='username'
               onChange={handleChange}
             />
           </div>
 
+          {/* Email */}
           <div className='flex flex-col gap-1'>
-            <label className='text-slate-400 text-xs ml-1'>Email Address</label>
+            <label className='text-slate-400 text-xs ml-1'>{t('label_email')}</label>
             <input
               type='email'
               placeholder='name@example.com'
@@ -69,8 +75,9 @@ export default function SignUp() {
             />
           </div>
 
+          {/* Password */}
           <div className='flex flex-col gap-1'>
-            <label className='text-slate-400 text-xs ml-1'>Password</label>
+            <label className='text-slate-400 text-xs ml-1'>{t('label_password')}</label>
             <input
               type='password'
               placeholder='••••••••'
@@ -80,32 +87,41 @@ export default function SignUp() {
             />
           </div>
 
-             <input
-  type='text'
-  placeholder='WhatsApp Number (e.g. 919876543210)'
-  className='border p-3 rounded-lg'
-  id='phone'
-  onChange={handleChange}
-/>
+          {/* Phone/WhatsApp */}
+          <div className='flex flex-col gap-1'>
+            <label className='text-slate-400 text-xs ml-1'>{t('ph_whatsapp').split('(')[0]}</label>
+            <input
+              type='text'
+              placeholder={t('ph_whatsapp')}
+              className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all'
+              id='phone'
+              onChange={handleChange}
+            />
+          </div>
+
           <button
             disabled={loading}
             className='bg-accent text-primary font-bold p-3 rounded-xl uppercase hover:opacity-90 disabled:opacity-80 transition-all shadow-lg mt-2'
           >
-            {loading ? 'Processing...' : 'Register Now'}
+            {loading ? t('btn_processing') : t('btn_register')}
           </button>
           
           <div className='relative my-2'>
-            <div className='absolute inset-0 flex items-center'><span className='w-full border-t border-slate-700'></span></div>
-            <div className='relative flex justify-center text-xs uppercase'><span className='bg-slate-900 px-2 text-slate-500'>Quick Signup</span></div>
+            <div className='absolute inset-0 flex items-center'>
+              <span className='w-full border-t border-slate-700'></span>
+            </div>
+            <div className='relative flex justify-center text-xs uppercase'>
+              <span className='bg-[#0f172a] px-2 text-slate-500'>{t('quick_signup')}</span>
+            </div>
           </div>
 
           <OAuth/>
         </form>
 
         <div className='flex justify-center gap-2 mt-6 text-sm'>
-          <p className='text-slate-400'>Already have an account?</p>
+          <p className='text-slate-400'>{t('have_account')}</p>
           <Link to={'/sign-in'}>
-            <span className='text-accent hover:underline font-semibold'>Sign in</span>
+            <span className='text-accent hover:underline font-semibold'>{t('link_signin')}</span>
           </Link>
         </div>
 

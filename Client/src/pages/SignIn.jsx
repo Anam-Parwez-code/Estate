@@ -7,18 +7,22 @@ import {
   signInFailure,
 } from '../redux/user/userSlice';
 import OAuth from '../components/OAuth';
+import { useTranslation } from 'react-i18next'; // 1. Import Hook
 
 export default function SignIn() {
+  const { t } = useTranslation(); // 2. Initialize Hook
   const [formData, setFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -31,7 +35,6 @@ export default function SignIn() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log(data);
       if (data.success === false) {
         dispatch(signInFailure(data.message));
         return;
@@ -43,16 +46,17 @@ export default function SignIn() {
       dispatch(signInFailure(error.message));
     }
   };
-return (
+
+  return (
     <div className='bg-primary min-h-screen flex items-center justify-center p-3'>
       <div className='max-w-lg w-full bg-slate-800/30 p-8 rounded-3xl border border-slate-700 shadow-2xl'>
         <h1 className='text-3xl text-center font-bold my-7 text-white'>
-          Welcome <span className='text-accent'>Back</span>
+          {t('signin_welcome').split(' ')[0]} <span className='text-accent'>{t('signin_welcome').split(' ')[1]}</span>
         </h1>
         
         <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
           <div className='flex flex-col gap-1'>
-            <label className='text-slate-400 text-xs ml-1'>Email Address</label>
+            <label className='text-slate-400 text-xs ml-1'>{t('label_email')}</label>
             <input
               type='email'
               placeholder='name@example.com'
@@ -63,7 +67,7 @@ return (
           </div>
 
           <div className='flex flex-col gap-1'>
-            <label className='text-slate-400 text-xs ml-1'>Password</label>
+            <label className='text-slate-400 text-xs ml-1'>{t('label_password')}</label>
             <input
               type='password'
               placeholder='••••••••'
@@ -77,21 +81,25 @@ return (
             disabled={loading}
             className='bg-accent text-primary font-bold p-3 rounded-xl uppercase hover:opacity-90 disabled:opacity-80 transition-all shadow-lg mt-2'
           >
-            {loading ? 'Authenticating...' : 'Sign In'}
+            {loading ? t('btn_authenticating') : t('btn_signin')}
           </button>
           
           <div className='relative my-2'>
-            <div className='absolute inset-0 flex items-center'><span className='w-full border-t border-slate-700'></span></div>
-            <div className='relative flex justify-center text-xs uppercase'><span className='bg-slate-900 px-2 text-slate-500'>Or continue with</span></div>
+            <div className='absolute inset-0 flex items-center'>
+              <span className='w-full border-t border-slate-700'></span>
+            </div>
+            <div className='relative flex justify-center text-xs uppercase'>
+              <span className='bg-[#0f172a] px-2 text-slate-500'>{t('or_continue')}</span>
+            </div>
           </div>
 
           <OAuth/>
         </form>
 
         <div className='flex justify-center gap-2 mt-6 text-sm'>
-          <p className='text-slate-400'>Don't have an account?</p>
+          <p className='text-slate-400'>{t('no_account')}</p>
           <Link to={'/sign-up'}>
-            <span className='text-accent hover:underline font-semibold'>Sign up</span>
+            <span className='text-accent hover:underline font-semibold'>{t('link_signup')}</span>
           </Link>
         </div>
 

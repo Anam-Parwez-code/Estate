@@ -11,8 +11,10 @@ import {
 } from '../redux/user/userSlice';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next'; // 1. Import Hook
 
 export default function Profile() {
+  const { t } = useTranslation(); // 2. Initialize Hook
   const fileRef = useRef(null);
   const { currentUser, loading, error } = useSelector((state) => state.user);
   const [file, setFile] = useState(undefined);
@@ -22,7 +24,7 @@ export default function Profile() {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [showListingsError, setShowListingsError] = useState(false);
   const [userListings, setUserListings] = useState([]);
-  const [showListingsClicked, setShowListingsClicked] = useState(false); // New state to track click
+  const [showListingsClicked, setShowListingsClicked] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -122,7 +124,7 @@ export default function Profile() {
   const handleShowListings = async () => {
     try {
       setShowListingsError(false);
-      setShowListingsClicked(true); // Mark that we clicked the button
+      setShowListingsClicked(true);
       const res = await fetch(`/api/user/listings/${currentUser._id}`);
       const data = await res.json();
       if (data.success === false) {
@@ -150,7 +152,7 @@ export default function Profile() {
     <div className='bg-primary min-h-screen pb-20'>
       <div className='p-3 max-w-lg mx-auto'>
         <h1 className='text-3xl font-bold text-center my-10 text-white'>
-          Your <span className='text-accent'>Profile</span>
+          {t('profile_title').split(' ')[0]} <span className='text-accent'>{t('profile_title').split(' ')[1]}</span>
         </h1>
         
         <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
@@ -163,56 +165,54 @@ export default function Profile() {
           />
           <p className='text-sm self-center'>
             {fileUploadError ? (
-              <span className='text-red-500 font-medium'>Error Image upload (less than 2 mb)</span>
+              <span className='text-red-500 font-medium'>{t('upload_err')}</span>
             ) : filePerc > 0 && filePerc < 100 ? (
-              <span className='text-slate-300'>{`Uploading ${filePerc}%`}</span>
+              <span className='text-slate-300'>{`${t('uploading')} ${filePerc}%`}</span>
             ) : filePerc === 100 ? (
-              <span className='text-green-500 font-medium'>Image successfully uploaded!</span>
+              <span className='text-green-500 font-medium'>{t('upload_success')}</span>
             ) : null}
           </p>
 
-          <input type='text' placeholder='username' defaultValue={currentUser.username} id='username' className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all' onChange={handleChange} />
-          <input type='email' placeholder='email' id='email' defaultValue={currentUser.email} className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all' onChange={handleChange} />
-          <input type='password' placeholder='password' id='password' className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all' onChange={handleChange} />
-          <input type='text' placeholder='WhatsApp Number' defaultValue={currentUser.phone} id='phone' className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all' onChange={handleChange} />
+          <input type='text' placeholder={t('ph_username')} defaultValue={currentUser.username} id='username' className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all' onChange={handleChange} />
+          <input type='email' placeholder={t('ph_email')} id='email' defaultValue={currentUser.email} className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all' onChange={handleChange} />
+          <input type='password' placeholder={t('ph_password')} id='password' className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all' onChange={handleChange} />
+          <input type='text' placeholder={t('ph_whatsapp')} defaultValue={currentUser.phone} id='phone' className='bg-slate-800/50 border border-slate-700 p-3 rounded-xl text-white focus:border-accent outline-none transition-all' onChange={handleChange} />
 
           <button disabled={loading} className='bg-accent text-primary font-bold rounded-xl p-3 uppercase hover:opacity-90 disabled:opacity-80 transition-all shadow-lg mt-2'>
-            {loading ? 'Processing...' : 'Update Account'}
+            {loading ? t('btn_processing') : t('btn_update')}
           </button>
           
           <Link className='bg-white/5 text-accent border border-accent/30 p-3 rounded-xl uppercase text-center hover:bg-accent/10 transition-all font-bold' to={'/create-listing'}>
-            Create New Listing
+            {t('btn_create_listing')}
           </Link>
         </form>
 
         <div className='flex justify-between mt-6 px-2'>
-          <span onClick={handleDeleteUser} className='text-red-400 hover:text-red-600 cursor-pointer text-sm font-medium transition-colors'>Delete account</span>
-          <span onClick={handleSignOut} className='text-red-400 hover:text-red-600 cursor-pointer text-sm font-medium transition-colors'>Sign out</span>
+          <span onClick={handleDeleteUser} className='text-red-400 hover:text-red-600 cursor-pointer text-sm font-medium transition-colors'>{t('delete_account')}</span>
+          <span onClick={handleSignOut} className='text-red-400 hover:text-red-600 cursor-pointer text-sm font-medium transition-colors'>{t('sign_out')}</span>
         </div>
 
         <p className='text-red-500 mt-5 text-center font-medium'>{error ? error : ''}</p>
-        <p className='text-green-500 mt-5 text-center font-medium'>{updateSuccess ? 'Profile updated successfully!' : ''}</p>
+        <p className='text-green-500 mt-5 text-center font-medium'>{updateSuccess ? t('profile_updated') : ''}</p>
 
         <button onClick={handleShowListings} className='text-accent hover:text-white transition-colors w-full mt-8 font-bold text-lg border-b border-accent/20 pb-2'>
-          View Your Property Listings ↓
+          {t('view_listings')}
         </button>
 
-        <p className='text-red-500 mt-5 text-center'>{showListingsError ? 'Error showing listings' : ''}</p>
+        <p className='text-red-500 mt-5 text-center'>{showListingsError ? t('err_listings') : ''}</p>
 
-        {/* Empty State Logic */}
         {!showListingsError && showListingsClicked && userListings.length === 0 && (
           <div className='mt-10 p-10 bg-slate-800/30 border-2 border-dashed border-slate-700 rounded-3xl text-center'>
-            <p className='text-slate-400 text-lg mb-4'>You haven't created any royal listings yet.</p>
-            <Link to='/create-listing' className='text-accent hover:text-white font-bold text-xl transition-colors'>+ Create Property</Link>
+            <p className='text-slate-400 text-lg mb-4'>{t('no_listings')}</p>
+            <Link to='/create-listing' className='text-accent hover:text-white font-bold text-xl transition-colors'>{t('create_prop')}</Link>
           </div>
         )}
       </div>
 
-      {/* Listings Grid Logic */}
       <div className='max-w-6xl mx-auto px-3'>
         {userListings && userListings.length > 0 && (
           <div className='flex flex-col gap-6 mt-10'>
-            <h2 className='text-center text-3xl font-bold text-white mb-4'>Your Royal <span className='text-accent'>Properties</span></h2>
+            <h2 className='text-center text-3xl font-bold text-white mb-4'>{t('your_royal_props').split(' ')[0]} {t('your_royal_props').split(' ')[1]} <span className='text-accent'>{t('your_royal_props').split(' ')[2]}</span></h2>
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
               {userListings.map((listing) => (
                 <div key={listing._id} className='bg-slate-800/40 border border-slate-700 rounded-3xl p-5 flex flex-col gap-4 hover:shadow-2xl hover:border-accent/50 transition-all duration-300 group'>
@@ -226,9 +226,9 @@ export default function Profile() {
                     <p className='text-slate-100 font-bold text-xl truncate group-hover:text-accent transition-colors'>{listing.name}</p>
                   </Link>
                   <div className='flex justify-between items-center border-t border-slate-700/50 pt-4 mt-auto'>
-                    <button onClick={() => handleListingDelete(listing._id)} className='text-red-400 hover:text-red-600 text-xs font-bold uppercase tracking-wider'>Delete</button>
+                    <button onClick={() => handleListingDelete(listing._id)} className='text-red-400 hover:text-red-600 text-xs font-bold uppercase tracking-wider'>{t('btn_delete')}</button>
                     <Link to={`/update-listing/${listing._id}`}>
-                      <button className='bg-accent text-primary px-5 py-2 rounded-xl text-xs font-bold uppercase hover:bg-white transition-all'>Edit</button>
+                      <button className='bg-accent text-primary px-5 py-2 rounded-xl text-xs font-bold uppercase hover:bg-white transition-all'>{t('btn_edit')}</button>
                     </Link>
                   </div>
                 </div>

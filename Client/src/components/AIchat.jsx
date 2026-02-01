@@ -89,7 +89,14 @@ const AIChat = () => {
                 <div className="bg-slate-800 text-slate-200 px-4 py-3 rounded-2xl rounded-tl-none max-w-[90%] text-sm border border-slate-700 shadow-sm" style={{ unicodeBidi: 'plaintext', textAlign: 'start' }}>
                   <p className="text-[10px] text-accent font-bold mb-1 uppercase tracking-tighter">AI Assistant</p>
                   <div className="prose prose-invert max-w-none">
-                    {c.ai ? <ReactMarkdown>{c.ai}</ReactMarkdown> : (
+                    {c.ai ? 
+                    (
+        
+        <div 
+          className="chat-html-render"
+          dangerouslySetInnerHTML={{ __html: c.ai }} 
+        />
+                    ): (
                       <div className="flex gap-1 py-1">
                         <div className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce"></div>
                         <div className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce [animation-delay:0.2s]"></div>

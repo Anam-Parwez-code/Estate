@@ -1,4 +1,4 @@
-import {Helmet} from 'react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -6,12 +6,14 @@ import { Navigation } from 'swiper/modules';
 import SwiperCore from 'swiper';
 import 'swiper/css/bundle';
 import ListingItem from '../components/ListingItem';
-import AIChat from '../components/AIchat';
+import AIChat from '../components/AIChat';
+import { useTranslation } from 'react-i18next'; // 1. Hook Import karein
 
 export default function Home() {
   const [offerListings, setOfferListings] = useState([]);
   const [saleListings, setSaleListings] = useState([]);
   const [rentListings, setRentListings] = useState([]);
+  const { t } = useTranslation(); // 2. Hook initialize karein
   SwiperCore.use([Navigation]);
 
   useEffect(() => {
@@ -48,38 +50,32 @@ export default function Home() {
     fetchOfferListings();
   }, []);
 
-  
-                  return (
-                    
-    <div className='bg-primary min-h-screen'> {/* Poora background Navy Blue */}
+  return (
+    <div className='bg-primary min-h-screen'>
       <Helmet>
-        <title>Royal Estate | Luxury Villas & Properties</title>
-        <meta
-          name='description'
-          content="Discover the finest luxury real estate with Royal Estate. Premier properties in Saudi Arabia, UAE,Europe,India and worldwide For Rent and Sale ."
-        />
+        <title>{t('meta_title')}</title>
+        <meta name='description' content={t('meta_desc')} />
       </Helmet>
-      {/* top */}
+
+      {/* Hero Section */}
       <div className='flex flex-col gap-6 p-28 px-3 max-w-6xl mx-auto'>
-        <h1 className='text-white font-bold text-3xl lg:text-6xl'> {/* text-white kiya */}
-          Find your next <span className='text-accent'>perfect</span> {/* text-accent (Gold) */}
-          <br />
-          place with ease
+        <h1 className='text-white font-bold text-3xl lg:text-6xl'>
+          {t('home_hero_title').split(t('home_hero_span'))[0]}
+          <span className='text-accent'>{t('home_hero_span')}</span>
+          {t('home_hero_title').split(t('home_hero_span'))[1]}
         </h1>
-        <div className='text-slate-400 text-xs sm:text-sm'> {/* text-slate-400 for readability */}
-          Royal Estate is the best place to find your next perfect place to live.
-          <br />
-          We have a wide range of properties for you to choose from.
+        <div className='text-slate-400 text-xs sm:text-sm'>
+          {t('home_hero_sub')}
         </div>
         <Link
           to={'/search'}
-          className='text-xs sm:text-sm text-accent font-bold hover:underline' 
+          className='text-xs sm:text-sm text-accent font-bold hover:underline'
         >
-          Let's get started...
+          {t('home_get_started')}
         </Link>
       </div>
 
-      {/* swiper */}
+      {/* Swiper */}
       <Swiper navigation>
         {offerListings &&
           offerListings.length > 0 &&
@@ -96,14 +92,14 @@ export default function Home() {
           ))}
       </Swiper>
 
-      {/* listing results for offer, sale and rent */}
+      {/* Listings */}
       <div className='max-w-6xl mx-auto p-3 flex flex-col gap-8 my-10'>
         {offerListings && offerListings.length > 0 && (
-          <div className=''>
+          <div>
             <div className='my-3'>
-              <h2 className='text-2xl font-semibold text-white'>Recent offers</h2>
+              <h2 className='text-2xl font-semibold text-white'>{t('home_recent_offers')}</h2>
               <Link className='text-sm text-accent hover:underline' to={'/search?offer=true'}>
-                Show more offers
+                {t('home_show_more_offers')}
               </Link>
             </div>
             <div className='flex flex-wrap gap-4'>
@@ -113,13 +109,13 @@ export default function Home() {
             </div>
           </div>
         )}
-        
+
         {rentListings && rentListings.length > 0 && (
-          <div className=''>
+          <div>
             <div className='my-3'>
-              <h2 className='text-2xl font-semibold text-white'>Recent places for rent</h2>
+              <h2 className='text-2xl font-semibold text-white'>{t('home_recent_rent')}</h2>
               <Link className='text-sm text-accent hover:underline' to={'/search?type=rent'}>
-                Show more places for rent
+                {t('home_show_more_rent')}
               </Link>
             </div>
             <div className='flex flex-wrap gap-4'>
@@ -131,11 +127,11 @@ export default function Home() {
         )}
 
         {saleListings && saleListings.length > 0 && (
-          <div className=''>
+          <div>
             <div className='my-3'>
-              <h2 className='text-2xl font-semibold text-white'>Recent places for sale</h2>
+              <h2 className='text-2xl font-semibold text-white'>{t('home_recent_sale')}</h2>
               <Link className='text-sm text-accent hover:underline' to={'/search?type=sale'}>
-                Show more places for sale
+                {t('home_show_more_sale')}
               </Link>
             </div>
             <div className='flex flex-wrap gap-4'>
@@ -146,6 +142,7 @@ export default function Home() {
           </div>
         )}
       </div>
+
       <AIChat />
     </div>
   );
