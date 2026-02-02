@@ -11,7 +11,7 @@ import path from 'path';
 import cors from "cors";
 
 
-dotenv.config({ path: "./Api/.env" });
+dotenv.config();
 
 mongoose
   .connect(process.env.MONGO_URI)
