@@ -11,7 +11,7 @@ import path from 'path';
 import cors from "cors";
 
 
-dotenv.config({ path: "./Api/.env" });
+dotenv.config();
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -26,7 +26,7 @@ mongoose
 
 const app = express();
 app.use(cors({
-  origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+  origin: ["http://localhost:5173", "https://my-royal-estate-app.vercel.app"], // Apni Vercel URL yahan dalein
   credentials: true,
 }));
 
@@ -36,9 +36,9 @@ app.use(express.json());
 
 app.use(cookieParser());
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000!');
-});
+//app.listen(3000, () => {
+  //console.log('Server is running on port 3000!');
+//});
 
 app.use('/api/user', userRouter);
 app.use('/api/auth', authRouter);
@@ -61,3 +61,4 @@ app.use((err, req, res, next) => {
     message,
   });
 });
+export default app;
