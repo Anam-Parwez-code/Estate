@@ -6,7 +6,7 @@ import { Navigation } from 'swiper/modules';
 import SwiperCore from 'swiper';
 import 'swiper/css/bundle';
 import ListingItem from '../components/ListingItem';
-import AIChat from '../components/AIChat.jsx';
+import AIChat from '../components/AIchat.jsx';
 import { useTranslation } from 'react-i18next'; // 1. Hook Import karein
 
 export default function Home() {
