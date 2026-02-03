@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaWhatsapp, FaEnvelope } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next'; // 1. Import Hook
-
+import axiosInstance from '../services/api';
 export default function Contact({ listing }) {
   const { t } = useTranslation(); // 2. Initialize Hook
   const [landlord, setLandlord] = useState(null);
@@ -14,9 +14,11 @@ export default function Contact({ listing }) {
   useEffect(() => {
     const fetchLandlord = async () => {
       try {
-        const res = await fetch(`/api/user/${listing.userRef}`);
-        const data = await res.json();
-        setLandlord(data);
+        // Fetch ko hata kar axiosInstance use karein
+        const res = await axiosInstance.get(`/user/${listing.userRef}`);
+        
+        // Axios mein data direct .data property mein hota hai
+        setLandlord(res.data);
       } catch (error) {
         console.log("Error fetching landlord:", error);
       }

@@ -1,158 +1,170 @@
-{/*import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import { FaRobot, FaPaperPlane, FaTimes } from 'react-icons/fa';
 
 export default function AIChatbot({ listings }) {
   const { i18n } = useTranslation();
   const [input, setInput] = useState('');
-  const [lastResults, setLastResults] = useState([]); // Memory for context
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Salam Anam! Main aapki kaisay madad kar sakti hoon? (e.g., Search "London" then "Price in INR")' }
-  ]);
+  const [lastResults, setLastResults] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { role: 'assistant', content: 'Hello! I am your Royal Assistant. How can I assist you with your property search today?' }
+  ]);
   const scrollRef = useRef();
+
+  const AI_SERVER_URL = "https://royal-estate-ai.onrender.com/chat";
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const query = input.toLowerCase();
-    const isArabic = /[\u0600-\u06FF]/.test(query);
+    const userQuery = input.toLowerCase();
     setMessages(prev => [...prev, { role: 'user', content: input }]);
-
-    // 1. Currency Detection
-    const currencies = { 'inr': 'INR', 'eur': 'EUR', 'euro': 'EUR', 'gbp': 'GBP', 'usd': 'USD' };
-    let targetCurrency = null;
-    Object.keys(currencies).forEach(key => {
-      if (query.includes(key)) targetCurrency = currencies[key];
-    });
-
-    // 2. Search & Filter Logic
-    let foundListings = [];
-    // Agar sirf currency mangi hai, toh purane results use karo
-    const isOnlyCurrency = targetCurrency && query.split(' ').length <= 3;
-
-    if (isOnlyCurrency && lastResults.length > 0) {
-      foundListings = [...lastResults];
-    } else {
-      const cleanSearch = query.replace(/inr|eur|euro|gbp|usd|price|in|me|ghar/g, '').trim();
-      foundListings = listings.filter(item => 
-        item.name.toLowerCase().includes(cleanSearch) || 
-        item.address.toLowerCase().includes(cleanSearch) ||
-        item.description.toLowerCase().includes(cleanSearch)
-      ).slice(0, 2);
-      setLastResults(foundListings); // Save to memory
-    }
-
-    // 3. Conversion Logic (Base: SAR)
-    let finalResults = [...foundListings];
-    let customResponse = "";
-
-    if (foundListings.length > 0 && targetCurrency) {
-      try {
-        // NOTE: Fixed base to SAR
-        const res = await fetch(`https://v6.exchangerate-api.com/v6/91f3c7bf31224bfd28421294/latest/SAR`);
-        const data = await res.json();
-        
-        if (data.result === "success") {
-          const rate = data.conversion_rates[targetCurrency];
-          finalResults = foundListings.map(l => ({
-            ...l,
-            convertedPrice: (l.regularPrice * rate).toLocaleString(undefined, { maximumFractionDigits: 2 }),
-            symbol: targetCurrency,
-            isConverted: true
-          }));
-          customResponse = `Ji, live rates ke mutabiq ${targetCurrency} mein qeemat ye hai:`;
-        }
-      } catch (err) {
-        const fallbacks = { INR: 22.45, EUR: 0.25, GBP: 0.21, USD: 0.27 };
-        const rate = fallbacks[targetCurrency] || 1;
-        finalResults = foundListings.map(l => ({
-          ...l,
-          convertedPrice: (l.regularPrice * rate).toLocaleString(),
-          symbol: targetCurrency,
-          isConverted: true
-        }));
-      }
-    }
-
-    setTimeout(() => {
-      if (foundListings.length > 0) {
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: customResponse || (isArabic ? "لقد وجدت هذه العقارات لك:" : "Mujhe aapke liye ye behtareen options mile hain:"),
-          results: finalResults 
-        }]);
-      } else {
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: "Maazrat! Mujhe milti julti koi listing nahi mili." 
-        }]);
-      }
-    }, 600);
-    
     setInput('');
+    setIsTyping(true);
+
+    try {
+      // --- PLAN A: PYTHON AI SERVER ---
+      const response = await axios.post(AI_SERVER_URL, 
+        { message: userQuery }, 
+        { timeout: 7000 }
+      );
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: response.data.reply, 
+        results: response.data.listings 
+      }]);
+
+    } catch (error) {
+      console.log("Server unreachable. Activating Local Filter + Currency Conversion...");
+      
+      // --- PLAN B: BACKUP FILTER & CURRENCY LOGIC ---
+      const currencies = { 'inr': 'INR', 'eur': 'EUR', 'gbp': 'GBP', 'usd': 'USD' };
+      let targetCurrency = null;
+      Object.keys(currencies).forEach(key => {
+        if (userQuery.includes(key)) targetCurrency = currencies[key];
+      });
+
+      let foundListings = [];
+      const isOnlyCurrency = targetCurrency && userQuery.split(' ').length <= 3;
+
+      if (isOnlyCurrency && lastResults.length > 0) {
+        foundListings = [...lastResults];
+      } else {
+        const cleanSearch = userQuery.replace(/inr|eur|euro|gbp|usd|price|home|flat/g, '').trim();
+        foundListings = (listings || []).filter(item => 
+          item.name.toLowerCase().includes(cleanSearch) || 
+          item.address.toLowerCase().includes(cleanSearch)
+        ).slice(0, 2);
+        setLastResults(foundListings);
+      }
+
+      let finalResults = [...foundListings];
+      let assistantReply = foundListings.length > 0 
+        ? "I found these options for you:" 
+        : "I couldn't find any matching properties. Please try another location.";
+
+      // Live Currency Conversion for Backup Plan
+      if (foundListings.length > 0 && targetCurrency) {
+        try {
+          const apiKey = import.meta.env.VITE_EXCHANGE_KEY || '91f3c7bf31224bfd28421294';
+          const res = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/SAR`);
+          const data = await res.json();
+          
+          if (data.result === "success") {
+            const rate = data.conversion_rates[targetCurrency];
+            finalResults = foundListings.map(l => ({
+              ...l,
+              convertedPrice: (l.regularPrice * rate).toLocaleString(undefined, { maximumFractionDigits: 2 }),
+              symbol: targetCurrency,
+              isConverted: true
+            }));
+            assistantReply = `Based on live rates, here are the prices in ${targetCurrency}:`;
+          }
+        } catch (err) {
+          assistantReply = "Currently unable to fetch live rates. Showing prices in SAR:";
+        }
+      }
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: assistantReply,
+        results: finalResults 
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
-    <div className='fixed bottom-5 right-5 z-50'>
-      <button onClick={() => setIsOpen(!isOpen)} className='bg-accent text-primary p-4 rounded-full shadow-2xl font-bold text-2xl'>
-        {isOpen ? '✕' : '🤖'}
+    <div className='fixed bottom-6 right-6 z-[1000]'>
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className={`p-4 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center ${isOpen ? 'bg-red-500 rotate-90' : 'bg-accent hover:scale-110'}`}
+      >
+        {isOpen ? <FaTimes className="text-white" /> : <FaRobot className="text-primary text-2xl" />}
       </button>
 
-      {isOpen && (
-        <div className='absolute bottom-16 right-0 w-85 h-[500px] bg-slate-900 border border-accent/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden'>
-          <div className='bg-accent p-4 text-primary font-bold shadow-md'>Royal AI Assistant</div>
-          
-          <div className='flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-900 to-slate-800'>
-            {messages.map((m, i) => (
-              <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                <div dir={/[\u0600-\u06FF]/.test(m.content) ? 'rtl' : 'ltr'} className={`p-3 rounded-2xl text-sm shadow-md ${m.role === 'user' ? 'bg-accent text-primary rounded-tr-none' : 'bg-slate-700 text-white rounded-tl-none'}`}>
-                  {m.content}
-                </div>
-                
-                {m.results && m.results.map((listing) => (
-                  <div key={listing._id} className='mt-3 w-full bg-white rounded-xl overflow-hidden shadow-2xl text-black border-l-4 border-accent'>
-                    <img src={listing.imageUrls[0]} alt="" className='h-28 w-full object-cover' />
-                    <div className='p-3'>
-                      <h3 className='font-bold text-sm truncate'>{listing.name}</h3>
-                      <p className='text-[10px] text-gray-500 mb-1'>{listing.address}</p>
-                      
-                      {listing.isConverted ? (
-                        <p className='text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded inline-block'>
-                          {listing.symbol} {listing.convertedPrice}
-                        </p>
-                      ) : (
-                        <p className='text-xs font-semibold'>SAR {listing.regularPrice.toLocaleString()}</p>
-                      )}
-
-                      <Link to={`/listing/${listing._id}`} className='mt-3 block text-center bg-primary text-white text-xs py-2 rounded-lg font-bold'>
-                        View Details
-                      </Link>
+      <div className={`${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0'} transition-all duration-300 origin-bottom-right absolute bottom-20 right-0 w-[350px] sm:w-[400px] h-[500px] bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col overflow-hidden`}>
+        
+        <div className="bg-slate-800/90 p-4 border-b border-slate-700 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <h3 className="text-white font-bold text-sm tracking-wide">Royal Assistant</h3>
+          </div>
+          {isTyping && <span className="text-[10px] text-accent animate-bounce font-medium">Processing...</span>}
+        </div>
+        
+        <div className='flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-900 to-slate-800 scrollbar-hide'>
+          {messages.map((m, i) => (
+            <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className={`p-3 rounded-2xl text-sm shadow-lg max-w-[85%] ${m.role === 'user' ? 'bg-accent text-primary rounded-tr-none' : 'bg-slate-700 text-slate-200 rounded-tl-none'}`}>
+                <ReactMarkdown className="prose prose-invert prose-sm leading-relaxed">{m.content}</ReactMarkdown>
+              </div>
+              
+              {m.results && m.results.map((listing) => (
+                <div key={listing._id} className='mt-3 w-full bg-white rounded-xl overflow-hidden shadow-2xl text-black border-l-4 border-accent transition-all hover:translate-x-1'>
+                  <img src={listing.imageUrls[0]} alt="" className='h-24 w-full object-cover' />
+                  <div className='p-3'>
+                    <h4 className='font-bold text-xs truncate'>{listing.name}</h4>
+                    <p className='text-[10px] text-gray-500 truncate'>{listing.address}</p>
+                    <div className="flex justify-between items-center mt-2">
+                       {listing.isConverted ? (
+                         <span className='text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded'>{listing.symbol} {listing.convertedPrice}</span>
+                       ) : (
+                         <span className='text-xs font-bold text-primary'>SAR {listing.regularPrice?.toLocaleString()}</span>
+                       )}
+                       <Link to={`/listing/${listing._id}`} className='text-[9px] bg-primary text-white px-3 py-1.5 rounded-lg font-bold uppercase'>Details</Link>
                     </div>
                   </div>
-                ))}
-              </div>
-            ))}
-            <div ref={scrollRef} />
-          </div>
-
-          <form onSubmit={handleSearch} className='p-3 bg-slate-800 border-t border-slate-700 flex gap-2'>
-            <input 
-              value={input} 
-              onChange={(e) => setInput(e.target.value)} 
-              placeholder={i18n.language === 'ar' ? 'اسأل عن أي شيء...' : 'Ask me anything...'} 
-              className='flex-1 bg-slate-700 text-white text-sm outline-none px-4 py-2 rounded-full'
-            />
-            <button type='submit' className='bg-accent text-primary px-4 py-2 rounded-full font-bold text-sm'>Find</button>
-          </form>
+                </div>
+              ))}
+            </div>
+          ))}
+          <div ref={scrollRef} />
         </div>
-      )}
+
+        <form onSubmit={handleSearch} className='p-4 bg-slate-800/80 border-t border-slate-700 flex gap-2'>
+          <input 
+            value={input} 
+            onChange={(e) => setInput(e.target.value)} 
+            placeholder="Ask about properties or prices..." 
+            className='flex-1 bg-slate-900 text-white text-sm outline-none px-4 py-3 rounded-xl border border-slate-700 focus:border-accent'
+          />
+          <button type='submit' disabled={isTyping} className='bg-accent text-primary p-3 rounded-xl shadow-lg hover:opacity-90'>
+            <FaPaperPlane />
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
-  */}

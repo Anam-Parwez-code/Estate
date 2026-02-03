@@ -1,18 +1,15 @@
 import { useEffect, useState } from "react";
-
+import axiosInstance from "../services/api";
 export default function Inbox() {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/message/inbox", {
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        const data = await res.json();
-        setMessages(data);
+       const res = await axiosInstance.get("/message/inbox");
+        
+        // 3. Axios mein data res.data mein hota hai
+        setMessages(res.data);
       } catch (error) {
         console.error("Error fetching inbox:", error);
       }

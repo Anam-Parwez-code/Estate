@@ -6,7 +6,7 @@ import { Navigation } from 'swiper/modules';
 import SwiperCore from 'swiper';
 import 'swiper/css/bundle';
 import ListingItem from '../components/ListingItem';
-import AIChat from '../components/AIchat.jsx';
+import AIChatbot from '../components/AIChatbot.jsx';
 import { useTranslation } from 'react-i18next';
 import axiosInstance from '../services/api'; // 1. Import Axios Instance
 
@@ -53,8 +53,9 @@ export default function Home() {
 
     fetchOfferListings();
   }, []);
+  const allListings = [...offerListings, ...rentListings, ...saleListings];
 
-  // ... Baki ka return code bilkul same rahega ...
+ 
   return (
     <div className='bg-primary min-h-screen'>
       <Helmet>
@@ -148,7 +149,7 @@ export default function Home() {
         )}
       </div>
 
-      <AIChat />
+      <AIChatbot listings={allListings} />
     </div>
   );
 }
