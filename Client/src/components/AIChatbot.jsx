@@ -16,7 +16,8 @@ export default function AIChatbot({ listings }) {
   ]);
   const scrollRef = useRef();
 
-  const AI_SERVER_URL = "https://royal-estate-ai.onrender.com/chat";
+  // Vite mein env variables aise access karte hain
+  const AI_SERVER_URL = import.meta.env.VITE_AI_URL || "https://royal-estate-ai.onrender.com/chat";
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -32,10 +33,9 @@ export default function AIChatbot({ listings }) {
     setIsTyping(true);
 
     try {
-      // --- PLAN A: PYTHON AI SERVER ---
       const response = await axios.post(AI_SERVER_URL, 
         { message: userQuery }, 
-        { timeout: 7000 }
+        { timeout: 8000 }
       );
 
       setMessages(prev => [...prev, { 
@@ -45,9 +45,8 @@ export default function AIChatbot({ listings }) {
       }]);
 
     } catch (error) {
-      console.log("Server unreachable. Activating Local Filter + Currency Conversion...");
+      console.log("Using Plan B: Local Filter");
       
-      // --- PLAN B: BACKUP FILTER & CURRENCY LOGIC ---
       const currencies = { 'inr': 'INR', 'eur': 'EUR', 'gbp': 'GBP', 'usd': 'USD' };
       let targetCurrency = null;
       Object.keys(currencies).forEach(key => {
@@ -73,7 +72,6 @@ export default function AIChatbot({ listings }) {
         ? "I found these options for you:" 
         : "I couldn't find any matching properties. Please try another location.";
 
-      // Live Currency Conversion for Backup Plan
       if (foundListings.length > 0 && targetCurrency) {
         try {
           const apiKey = import.meta.env.VITE_EXCHANGE_API_KEY || '91f3c7bf31224bfd28421294';
@@ -128,7 +126,10 @@ export default function AIChatbot({ listings }) {
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`p-3 rounded-2xl text-sm shadow-lg max-w-[85%] ${m.role === 'user' ? 'bg-accent text-primary rounded-tr-none' : 'bg-slate-700 text-slate-200 rounded-tl-none'}`}>
-                <ReactMarkdown className="prose prose-invert prose-sm leading-relaxed">{m.content}</ReactMarkdown>
+                {/* FIX: Moved className to a wrapper div */}
+                <div className="prose prose-invert prose-sm leading-relaxed">
+                   <ReactMarkdown>{m.content}</ReactMarkdown>
+                </div>
               </div>
               
               {m.results && m.results.map((listing) => (
