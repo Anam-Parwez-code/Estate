@@ -1,3 +1,4 @@
+import axiosInstance from '../services/api';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,10 +8,10 @@ import {
   signInFailure,
 } from '../redux/user/userSlice';
 import OAuth from '../components/OAuth';
-import { useTranslation } from 'react-i18next'; // 1. Import Hook
+import { useTranslation } from 'react-i18next';
 
 export default function SignIn() {
-  const { t } = useTranslation(); // 2. Initialize Hook
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
@@ -27,23 +28,29 @@ export default function SignIn() {
     e.preventDefault();
     try {
       dispatch(signInStart());
-      const res = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
+
+      // Axios syntax: Seedha data bhejte hain, JSON.stringify ki zaroorat nahi
+      const res = await axiosInstance.post('/api/auth/signin', formData);
+
+      // Axios mein response seedha 'res.data' mein milta hai
+      const data = res.data;
+
       if (data.success === false) {
         dispatch(signInFailure(data.message));
         return;
       }
-      localStorage.setItem('token', data.token);
+
+      // Agar aap token bhej rahe hain backend se
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+
       dispatch(signInSuccess(data));
       navigate('/');
     } catch (error) {
-      dispatch(signInFailure(error.message));
+      // Axios error handling: Backend se aane wala error message pakadne ke liye
+      const errorMessage = error.response?.data?.message || error.message;
+      dispatch(signInFailure(errorMessage));
     }
   };
 

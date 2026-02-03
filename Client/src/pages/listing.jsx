@@ -4,8 +4,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import SwiperCore from 'swiper';
 import { useSelector } from 'react-redux';
 import { Navigation } from 'swiper/modules';
-import { useTranslation } from 'react-i18next'; // 1. Import Hook
+import { useTranslation } from 'react-i18next';
 import 'swiper/css/bundle';
+import axiosInstance from '../services/api'; // 1. Axios Import karein
 import {
   FaBath,
   FaBed,
@@ -17,7 +18,7 @@ import {
 import Contact from '../components/Contact';
 
 export default function Listing() {
-  const { t } = useTranslation(); // 2. Initialize Hook
+  const { t } = useTranslation();
   SwiperCore.use([Navigation]);
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -31,8 +32,10 @@ export default function Listing() {
     const fetchListing = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/listing/get/${params.listingId}`);
-        const data = await res.json();
+        // 2. Axios GET request use karein
+        const res = await axiosInstance.get(`/api/listing/get/${params.listingId}`);
+        const data = res.data; // Axios mein seedha data milta hai
+
         if (data.success === false) {
           setError(true);
           setLoading(false);

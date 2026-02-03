@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next'; // 1. Import
+import { useTranslation } from 'react-i18next';
+import axiosInstance from '../services/api'; // 1. Axios Instance Import
 
 export default function UpdateListing() {
-  const { t } = useTranslation(); // 2. Initialize
+  const { t } = useTranslation();
   const { currentUser } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const params = useParams();
@@ -30,37 +31,59 @@ export default function UpdateListing() {
 
   useEffect(() => {
     const fetchListing = async () => {
-      const listingId = params.listingId;
-      const res = await fetch(`/api/listing/get/${listingId}`);
-      const data = await res.json();
-      if (data.success === false) {
-        console.log(data.message);
-        return;
+      try {
+        const listingId = params.listingId;
+        // 2. Axios GET Request
+        const res = await axiosInstance.get(`/api/listing/get/${listingId}`);
+        const data = res.data;
+
+        if (data.success === false) {
+          console.log(data.message);
+          return;
+        }
+        
+        setFormData({
+          ...data,
+          regularPrice: data.regularPrice,
+          discountPrice: data.discountPrice,
+          currency: data.currency || 'INR',
+        });
+      } catch (err) {
+        console.log(err.message);
       }
-      
-      setFormData({
-        ...data,
-         regularPrice: data.regularPrice,
-         discountPrice: data.discountPrice,
-         currency: data.currency || 'INR',
-      });
     };
 
     fetchListing();
   }, [params.listingId]);
 
-  const handleImageSubmit = async (e) => {
+  // Cloudinary Store Image (Fetch use kar sakte hain kyunki ye external API hai)
+  const storeImage = async (file) => {
+    const dataForm = new FormData();
+    dataForm.append('file', file);
+    dataForm.append('upload_preset', 'estate_preset'); 
+    
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload`, 
+        { method: 'POST', body: dataForm }
+      );
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      throw new Error('Failed to upload image');
+    }
+  };
+
+  const handleImageSubmit = async () => {
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
       setUploading(true);
       setImageUploadError(false);
-      
       try {
         const urls = [];
         for (let i = 0; i < files.length; i++) {
           const url = await storeImage(files[i]);
           urls.push(url);
         }
-        
         setFormData({
           ...formData,
           imageUrls: formData.imageUrls.concat(urls),
@@ -76,27 +99,6 @@ export default function UpdateListing() {
     }
   };
 
-  const storeImage = async (file) => {
-    const dataForm = new FormData();
-    dataForm.append('file', file);
-    dataForm.append('upload_preset', 'estate_preset'); 
-    
-    try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload`, 
-        {
-          method: 'POST',
-          body: dataForm,
-        }
-      );
-      
-      const data = await response.json();
-      return data.secure_url;
-    } catch (error) {
-      throw new Error('Failed to upload image');
-    }
-  };
-
   const handleRemoveImage = (index) => {
     setFormData({
       ...formData,
@@ -108,10 +110,10 @@ export default function UpdateListing() {
     if (e.target.id === 'sale' || e.target.id === 'rent') {
       setFormData({ ...formData, type: e.target.id });
     }
-    if (e.target.id === 'parking' || e.target.id === 'furnished' || e.target.id === 'offer') {
+    if (['parking', 'furnished', 'offer'].includes(e.target.id)) {
       setFormData({ ...formData, [e.target.id]: e.target.checked });
     }
-    if (e.target.type === 'number' || e.target.type === 'text' || e.target.type === 'textarea') {
+    if (['number', 'text', 'textarea'].includes(e.target.type)) {
       setFormData({ ...formData, [e.target.id]: e.target.value });
     }
   };
@@ -121,25 +123,29 @@ export default function UpdateListing() {
     try {
       if (formData.imageUrls.length < 1) return setError(t('error_min_image'));
       if (+formData.regularPrice < +formData.discountPrice) return setError(t('error_price'));
+      
       setLoading(true);
       setError(false);
-      const res = await fetch(`/api/listing/update/${params.listingId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, userRef: currentUser._id }),
+
+      // 3. Axios POST Request for Update
+      const res = await axiosInstance.post(`/api/listing/update/${params.listingId}`, {
+        ...formData,
+        userRef: currentUser._id,
       });
-      const data = await res.json();
+
+      const data = res.data;
       setLoading(false);
+      
       if (data.success === false) {
         setError(data.message);
+        return;
       }
       navigate(`/listing/${data._id}`);
     } catch (error) {
-      setError(error.message);
+      setError(error.response?.data?.message || error.message);
       setLoading(false);
     }
   };
-
   return (
     <main className='bg-primary min-h-screen p-3 pb-10'>
       <div className='max-w-4xl mx-auto'>

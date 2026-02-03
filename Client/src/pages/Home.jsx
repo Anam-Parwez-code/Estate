@@ -7,30 +7,33 @@ import SwiperCore from 'swiper';
 import 'swiper/css/bundle';
 import ListingItem from '../components/ListingItem';
 import AIChat from '../components/AIchat.jsx';
-import { useTranslation } from 'react-i18next'; // 1. Hook Import karein
+import { useTranslation } from 'react-i18next';
+import axiosInstance from '../services/api'; // 1. Import Axios Instance
 
 export default function Home() {
   const [offerListings, setOfferListings] = useState([]);
   const [saleListings, setSaleListings] = useState([]);
   const [rentListings, setRentListings] = useState([]);
-  const { t } = useTranslation(); // 2. Hook initialize karein
+  const { t } = useTranslation();
   SwiperCore.use([Navigation]);
 
   useEffect(() => {
+    // 2. Fetch ki jagah axiosInstance.get use karein
     const fetchOfferListings = async () => {
       try {
-        const res = await fetch('/api/listing/get?offer=true&limit=4');
-        const data = await res.json();
+        const res = await axiosInstance.get('/api/listing/get?offer=true&limit=4');
+        const data = res.data; // Axios mein seedha res.data use karein
         setOfferListings(data);
         fetchRentListings();
       } catch (error) {
         console.log(error);
       }
     };
+
     const fetchRentListings = async () => {
       try {
-        const res = await fetch('/api/listing/get?type=rent&limit=4');
-        const data = await res.json();
+        const res = await axiosInstance.get('/api/listing/get?type=rent&limit=4');
+        const data = res.data;
         setRentListings(data);
         fetchSaleListings();
       } catch (error) {
@@ -40,16 +43,18 @@ export default function Home() {
 
     const fetchSaleListings = async () => {
       try {
-        const res = await fetch('/api/listing/get?type=sale&limit=4');
-        const data = await res.json();
+        const res = await axiosInstance.get('/api/listing/get?type=sale&limit=4');
+        const data = res.data;
         setSaleListings(data);
       } catch (error) {
         console.log(error);
       }
     };
+
     fetchOfferListings();
   }, []);
 
+  // ... Baki ka return code bilkul same rahega ...
   return (
     <div className='bg-primary min-h-screen'>
       <Helmet>
@@ -92,7 +97,7 @@ export default function Home() {
           ))}
       </Swiper>
 
-      {/* Listings */}
+      {/* Listings Section */}
       <div className='max-w-6xl mx-auto p-3 flex flex-col gap-8 my-10'>
         {offerListings && offerListings.length > 0 && (
           <div>

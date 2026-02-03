@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next'; // 1. Import translation hook
+import { useTranslation } from 'react-i18next';
+import axiosInstance from '../services/api'; // 1. Axios Import
 
 export default function CreateListing() {
-  const { t } = useTranslation(); // 2. Initialize translation function
+  const { t } = useTranslation();
   const { currentUser } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const [files, setFiles] = useState([]);
@@ -28,6 +29,7 @@ export default function CreateListing() {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Cloudinary upload (External API - No Axios change needed here)
   const storeImage = async (file) => {
     const data = new FormData();
     data.append('file', file);
@@ -99,29 +101,32 @@ export default function CreateListing() {
       
       setLoading(true);
       setError(false);
-      const res = await fetch('http://localhost:3000/api/listing/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', 
-        body: JSON.stringify({ ...formData, userRef: currentUser._id }),
+
+      // 2. Axios POST Request (Removed hardcoded localhost)
+      const res = await axiosInstance.post('/api/listing/create', {
+        ...formData,
+        userRef: currentUser._id,
       });
-      const data = await res.json();
+
+      const data = res.data;
       setLoading(false);
+      
       if (data.success === false) {
         setError(data.message);
         return;
       }
+      
       if(data._id){
         navigate(`/listing/${data._id}`);
       } else {
         setError('Listing creation failed');
       }
     } catch (error) {
-      setError(error.message);
+      // Axios errors contain response data
+      setError(error.response?.data?.message || error.message);
       setLoading(false);
     }
   };
-
   return (
     <main className='bg-primary min-h-screen p-3 pb-10'>
       <div className='max-w-4xl mx-auto'>

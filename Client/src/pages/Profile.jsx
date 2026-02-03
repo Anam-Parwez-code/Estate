@@ -11,10 +11,11 @@ import {
 } from '../redux/user/userSlice';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next'; // 1. Import Hook
+import { useTranslation } from 'react-i18next';
+import axiosInstance from '../services/api'; // 1. Axios Import
 
 export default function Profile() {
-  const { t } = useTranslation(); // 2. Initialize Hook
+  const { t } = useTranslation();
   const fileRef = useRef(null);
   const { currentUser, loading, error } = useSelector((state) => state.user);
   const [file, setFile] = useState(undefined);
@@ -39,6 +40,7 @@ export default function Profile() {
       formDataCloud.append("file", file);
       formDataCloud.append("upload_preset", "estate_preset");
 
+      // Cloudinary fetch ko aise hi rehne dein kyunki ye external hai
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/dyuxqlwhv/image/upload`,
         { method: "POST", body: formDataCloud }
@@ -48,17 +50,13 @@ export default function Profile() {
       if (data.secure_url) {
         setFormData({ ...formData, avatar: data.secure_url });
         dispatch(updateUserStart());
-        const updateRes = await fetch(`/api/user/update/${currentUser._id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ avatar: data.secure_url }),
+        
+        // Backend update using Axios
+        const updateRes = await axiosInstance.post(`/api/user/update/${currentUser._id}`, {
+          avatar: data.secure_url 
         });
-        const updateData = await updateRes.json();
-        if (updateData.success === false) {
-          dispatch(updateUserFailure(updateData.message));
-          return;
-        }
-        dispatch(updateUserSuccess(updateData));
+        
+        dispatch(updateUserSuccess(updateRes.data));
         setUpdateSuccess(true);
       }
     } catch (err) {
@@ -74,50 +72,34 @@ export default function Profile() {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(updateUserFailure(data.message));
-        return;
-      }
-      dispatch(updateUserSuccess(data));
+      // 2. Axios Update
+      const res = await axiosInstance.post(`/api/user/update/${currentUser._id}`, formData);
+      dispatch(updateUserSuccess(res.data));
       setUpdateSuccess(true);
     } catch (error) {
-      dispatch(updateUserFailure(error.message));
+      dispatch(updateUserFailure(error.response?.data?.message || error.message));
     }
   };
 
   const handleDeleteUser = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data.message));
-        return;
-      }
-      dispatch(deleteUserSuccess(data));
+      // 3. Axios Delete
+      const res = await axiosInstance.delete(`/api/user/delete/${currentUser._id}`);
+      dispatch(deleteUserSuccess(res.data));
     } catch (error) {
-      dispatch(deleteUserFailure(error.message));
+      dispatch(deleteUserFailure(error.response?.data?.message || error.message));
     }
   };
 
   const handleSignOut = async () => {
     try {
       dispatch(signOutUserStart());
-      const res = await fetch('/api/auth/signout');
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data.message));
-        return;
-      }
-      dispatch(deleteUserSuccess(data));
+      // 4. Axios SignOut (GET request usually)
+      const res = await axiosInstance.get('/api/auth/signout');
+      dispatch(deleteUserSuccess(res.data));
     } catch (error) {
-      dispatch(deleteUserFailure(error.message));
+      dispatch(deleteUserFailure(error.response?.data?.message || error.message));
     }
   };
 
@@ -125,13 +107,9 @@ export default function Profile() {
     try {
       setShowListingsError(false);
       setShowListingsClicked(true);
-      const res = await fetch(`/api/user/listings/${currentUser._id}`);
-      const data = await res.json();
-      if (data.success === false) {
-        setShowListingsError(true);
-        return;
-      }
-      setUserListings(data);
+      // 5. Axios Get Listings
+      const res = await axiosInstance.get(`/api/user/listings/${currentUser._id}`);
+      setUserListings(res.data);
     } catch (error) {
       setShowListingsError(true);
     }
@@ -139,15 +117,13 @@ export default function Profile() {
 
   const handleListingDelete = async (listingId) => {
     try {
-      const res = await fetch(`/api/listing/delete/${listingId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success === false) return;
+      // 6. Axios Delete Listing
+      await axiosInstance.delete(`/api/listing/delete/${listingId}`);
       setUserListings((prev) => prev.filter((listing) => listing._id !== listingId));
     } catch (error) {
       console.log(error.message);
     }
   };
-
   return (
     <div className='bg-primary min-h-screen pb-20'>
       <div className='p-3 max-w-lg mx-auto'>

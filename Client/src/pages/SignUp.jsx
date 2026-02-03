@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import OAuth from '../components/OAuth';
-import { useTranslation } from 'react-i18next'; // 1. Import Hook
+import { useTranslation } from 'react-i18next';
+import axiosInstance from '../services/api'; // 1. Axios import karein
 
 export default function SignUp() {
-  const { t } = useTranslation(); // 2. Initialize Hook
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,14 +22,13 @@ export default function SignUp() {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
+      
+      // 2. Fetch ki jagah axiosInstance.post use karein
+      // Na headers ki chinta, na JSON.stringify ki
+      const res = await axiosInstance.post('/api/auth/signup', formData);
+      
+      const data = res.data; // 3. Axios mein data res.data mein hota hai
+
       if (data.success === false) {
         setLoading(false);
         setError(data.message);
@@ -39,7 +39,8 @@ export default function SignUp() {
       navigate('/sign-in');
     } catch (error) {
       setLoading(false);
-      setError(error.message);
+      // 4. Axios error handling
+      setError(error.response?.data?.message || error.message);
     }
   };
 

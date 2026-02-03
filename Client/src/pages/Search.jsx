@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ListingItem from '../components/ListingItem';
-import { useTranslation } from 'react-i18next'; // 1. Import
+import { useTranslation } from 'react-i18next';
+import axiosInstance from '../services/api'; // 1. Axios Instance Import
 
 export default function Search() {
-  const { t } = useTranslation(); // 2. Initialize
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [sidebardata, setSidebardata] = useState({
     searchTerm: '',
@@ -54,20 +55,29 @@ export default function Search() {
       setLoading(true);
       setShowMore(false);
       const searchQuery = urlParams.toString();
-      const res = await fetch(`/api/listing/get?${searchQuery}`);
-      const data = await res.json();
-      if (data.length > 8) {
-        setShowMore(true);
-      } else {
-        setShowMore(false);
+      
+      try {
+        // 2. Axios GET Request
+        const res = await axiosInstance.get(`/api/listing/get?${searchQuery}`);
+        const data = res.data; // .json() ki zaroorat nahi
+
+        if (data.length > 8) {
+          setShowMore(true);
+        } else {
+          setShowMore(false);
+        }
+        setListings(data);
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        console.log(error);
       }
-      setListings(data);
-      setLoading(false);
     };
 
     fetchListings();
   }, [location.search]);
 
+  // --- Debounce effect logic stays the same ---
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       const urlParams = new URLSearchParams();
@@ -125,14 +135,19 @@ export default function Search() {
     const urlParams = new URLSearchParams(location.search);
     urlParams.set('startIndex', startIndex);
     const searchQuery = urlParams.toString();
-    const res = await fetch(`/api/listing/get?${searchQuery}`);
-    const data = await res.json();
-    if (data.length < 9) {
-      setShowMore(false);
+    
+    try {
+      // 3. Axios for 'Show More' functionality
+      const res = await axiosInstance.get(`/api/listing/get?${searchQuery}`);
+      const data = res.data;
+      if (data.length < 9) {
+        setShowMore(false);
+      }
+      setListings([...listings, ...data]);
+    } catch (error) {
+      console.log(error);
     }
-    setListings([...listings, ...data]);
   };
-
   return (
     <div className='flex flex-col md:flex-row bg-primary min-h-screen'>
       {/* --- SIDEBAR --- */}
