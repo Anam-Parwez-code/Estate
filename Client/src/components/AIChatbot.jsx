@@ -76,7 +76,7 @@ export default function AIChatbot({ listings }) {
       // Live Currency Conversion for Backup Plan
       if (foundListings.length > 0 && targetCurrency) {
         try {
-          const apiKey = import.meta.env.VITE_EXCHANGE_KEY || '91f3c7bf31224bfd28421294';
+          const apiKey = import.meta.env.VITE_EXCHANGE_API_KEY || '91f3c7bf31224bfd28421294';
           const res = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/SAR`);
           const data = await res.json();
           
