@@ -15,7 +15,7 @@ export default function Contact({ listing }) {
     const fetchLandlord = async () => {
       try {
         // Fetch ko hata kar axiosInstance use karein
-        const res = await axiosInstance.get(`/user/${listing.userRef}`);
+        const res = await axiosInstance.get(`api/user/${listing.userRef}`);
         
         // Axios mein data direct .data property mein hota hai
         setLandlord(res.data);

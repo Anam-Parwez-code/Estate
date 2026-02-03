@@ -19,7 +19,7 @@ export default function OAuth() {
 
       // 2. Fetch ki jagah axiosInstance.post use kiya
       // Headers aur JSON.stringify ki zaroorat nahi, axios khud sambhal leta hai
-      const res = await axiosInstance.post('/auth/google', {
+      const res = await axiosInstance.post('api/auth/google', {
         name: result.user.displayName,
         email: result.user.email,
         photo: result.user.photoURL,

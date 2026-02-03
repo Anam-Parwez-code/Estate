@@ -6,7 +6,7 @@ export default function Inbox() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-       const res = await axiosInstance.get("/message/inbox");
+       const res = await axiosInstance.get("api/message/inbox");
         
         // 3. Axios mein data res.data mein hota hai
         setMessages(res.data);
