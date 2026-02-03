@@ -1,10 +1,15 @@
-import requests
+
+import os
 import json
+import requests
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from cerebras.cloud.sdk import Cerebras 
+from dotenv import load_dotenv
 
+# .env file se variables load karne ke liye
+load_dotenv()
 app = FastAPI()
 
 # Frontend connection
