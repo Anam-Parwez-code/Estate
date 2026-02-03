@@ -40,7 +40,9 @@ export const signin = async (req, res, next) => {
     res
       .cookie('access_token', token, { 
         httpOnly: true, 
-        expires: expiryDate 
+        expires: expiryDate ,
+        secure: true,      // Live site ke liye zaroori
+            sameSite: 'none'
       })
       .status(200)
       .json(rest);
