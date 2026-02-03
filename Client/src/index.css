@@ -34,3 +34,17 @@ body {
 .markdown-content strong {
     @apply font-semibold text-gray-900;
 }
+/* Taaki cards chat bubble ke andar sahi dikhein */
+.chat-html-render img {
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+.chat-html-render a {
+  transition: transform 0.2s;
+}
+
+.chat-html-render a:hover {
+  transform: scale(1.02);
+}

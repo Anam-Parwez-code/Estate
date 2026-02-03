@@ -75,7 +75,7 @@ async def ask_ai(request: ChatRequest):
 
         # 4. Database Fetch
         try:
-            db_res = requests.get("http://localhost:3000/api/listing/get-all-chatbot", timeout=5)
+            db_res = requests.get("https://royal-estate-uzii.onrender.com/api/listing/get-all-chatbot", timeout=5)
             all_listings = db_res.json()
         except:
             all_listings = [] # Agar backend off hai toh khali list
