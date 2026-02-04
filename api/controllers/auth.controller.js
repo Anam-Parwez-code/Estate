@@ -37,15 +37,16 @@ export const signin = async (req, res, next) => {
     // Cookie expiry date (30 days from now)
     const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    res
-      .cookie('access_token', token, { 
-        httpOnly: true, 
-        expires: expiryDate ,
-        secure: true,      // Live site ke liye zaroori
-            sameSite: 'none'
-      })
-      .status(200)
-      .json(rest);
+   res.cookie('access_token', token, {
+  httpOnly: true,
+  expires: expiryDate,
+  // Live site (Render) pe true hoga, Local pe false
+  secure: process.env.NODE_ENV === 'production', 
+  // Live site pe 'none' (Cross-site), Local pe 'lax'
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+})
+.status(200)
+.json(rest);
   } catch (error) {
     next(error);
   }
