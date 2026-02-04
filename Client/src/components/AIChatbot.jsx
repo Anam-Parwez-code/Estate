@@ -24,25 +24,25 @@ export default function AIChatbot({ listings }) {
   }, [messages, isTyping]);
 
   const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  e.preventDefault();
+  if (!input.trim()) return;
 
-    const userQuery = input.toLowerCase();
-    setMessages(prev => [...prev, { role: 'user', content: input }]);
-    setInput('');
-    setIsTyping(true);
+  const userQuery = input; // Query ko lowercase mat kijiye, Arabic/Roman ke liye original rehne dein
+  setMessages(prev => [...prev, { role: 'user', content: input }]);
+  setInput('');
+  setIsTyping(true);
 
-    try {
-      const response = await axios.post(AI_SERVER_URL, 
-        { message: userQuery }, 
-        { timeout: 8000 }
-      );
+  try {
+    const response = await axios.post(AI_SERVER_URL, 
+      { message: userQuery }, 
+      { timeout: 12000 } // JAIS thoda heavy hai, 12s timeout rakhein
+    );
 
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: response.data.reply, 
-        results: response.data.listings 
-      }]);
+    // FIX: Python backend se HTML reply aa raha hai
+    setMessages(prev => [...prev, { 
+      role: 'assistant', 
+      content: response.data.reply, // JAIS ka pura HTML card content yahan aayega
+    }]);
 
     } catch (error) {
       console.log("Using Plan B: Local Filter");
