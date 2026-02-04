@@ -104,7 +104,7 @@ export default function AIChatbot({ listings }) {
   };
 
   return (
-    <div className='fixed bottom-6 right-6 z-[1000]'>
+    <div className='fixed bottom-4 right-4 z-[1000] w-[90%] sm:w-[350px] max-h-[500px] flex flex-col shadow-2xl rounded-lg'>
       <button 
         onClick={() => setIsOpen(!isOpen)} 
         className={`p-4 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center ${isOpen ? 'bg-red-500 rotate-90' : 'bg-accent hover:scale-110'}`}
