@@ -48,17 +48,20 @@ async def ask_ai(request: ChatRequest):
         user_msg = request.message
         rates = get_live_rates()
 
-        # 1. Extraction Call (Roman English handles karne ke liye instruction di hai)
+        # 1. Extraction: Roman/Arabic se sirf CITY aur CURRENCY nikalne ke liye
         extraction_prompt = f"""
         User Message: "{user_msg}"
-        Previous Location: "{user_context.get('last_location', 'None')}"
-        Instruction: Understand Arabic, English and Roman English (e.g. "Riyadh me"). 
-        Return JSON ONLY: {{"location": "Name/null", "currency": "INR/AED/SAR/null", "lang": "Arabic/English"}}
+        Identify:
+        1. City/Location: (Extract only the name, e.g., 'Riyadh' from 'Riyadh me ghar')
+        2. Currency: (INR/SAR/AED/USD/null)
+        3. Language: (Arabic/English)
+        
+        Return JSON ONLY: {{"location": "CityName", "currency": "Code/null", "lang": "Arabic/English"}}
         """
         
         ex_res = client.chat.completions.create(
             messages=[{"role": "user", "content": extraction_prompt}],
-            model="llama3.1-8b", # Fast extraction
+            model="llama3.1-8b", 
             temperature=0
         )
         
@@ -67,7 +70,7 @@ async def ask_ai(request: ChatRequest):
             content = content.split("```json")[1].split("```")[0]
         info = json.loads(content.strip())
 
-        # Logic for location & currency
+        # Logic updates
         new_loc = info.get("location")
         if new_loc and new_loc.lower() not in ["none", "null"]:
             user_context["last_location"] = new_loc.lower()
@@ -76,7 +79,7 @@ async def ask_ai(request: ChatRequest):
         target_curr = info.get("currency")
         user_lang = info.get("lang", "English")
 
-        # 2. Database Fetch (Ensure this endpoint exists in Node.js)
+        # 2. Database Fetch
         try:
             db_res = requests.get("[https://royal-estate-uzii.onrender.com/api/listing/get-all-chatbot](https://royal-estate-uzii.onrender.com/api/listing/get-all-chatbot)", timeout=5)
             all_listings = db_res.json()
@@ -85,51 +88,58 @@ async def ask_ai(request: ChatRequest):
 
         matches = []
         for item in all_listings:
+            # Search pool for Riyadh/Bangalore etc.
             search_pool = f"{item.get('name','')} {item.get('address','')} {item.get('description','')}".lower()
             
             if current_loc and current_loc in search_pool:
                 orig_p = item.get('regularPrice', 0)
-                # Base currency detect (Default SAR)
-                base_curr = "SAR" 
+                address_lower = item.get('address', '').lower()
+
+                # --- SMART BASE CURRENCY DETECTION ---
+                # Agar address mein India hai toh INR, varna default SAR
+                if any(city in address_lower for city in ["india", "bangalore", "mumbai", "delhi"]):
+                    actual_base = "INR"
+                elif any(city in address_lower for city in ["uk", "london"]):
+                    actual_base = "GBP"
+                else:
+                    actual_base = "SAR"
                 
-                price_val = f"{orig_p} {base_curr}"
-                if target_curr and target_curr != "null" and target_curr != base_curr:
-                    # Conversion logic: (Price / BaseRate) * TargetRate
-                    usd_val = orig_p / rates.get(base_curr, 3.75)
-                    conv_p = round(usd_val * rates.get(target_curr, 1.0), 2)
-                    price_val += f" | {conv_p} {target_curr}"
+                # Default display
+                price_display = f"{orig_p} {actual_base}"
+                
+                # --- CONVERSION LOGIC ---
+                # Agar user ne specific currency mangi ho (Target Currency)
+                if target_curr and target_curr != "null" and target_curr != actual_base:
+                    try:
+                        # (Price / BaseRate) * TargetRate
+                        usd_val = orig_p / rates.get(actual_base, 1.0)
+                        conv_p = round(usd_val * rates.get(target_curr, 1.0), 2)
+                        price_display = f"{conv_p} {target_curr}"
+                    except:
+                        pass # API rate na mile toh original dikhao
 
                 matches.append({
                     "n": item.get('name'),
                     "a": item.get('address'),
-                    "p": price_val,
+                    "p": price_display, # Yahan fix ho gaya SAR/INR confusion
                     "i": item.get('imageUrls', [''])[0],
                     "u": f"{BASE_SITE_URL}/listing/{item.get('_id')}"
                 })
 
         # 3. Final Bilingual Response with JAIS
         system_prompt = f"""
-        You are 'Royal Estate AI', a bilingual real estate expert. 
-        - Language to use: {user_lang}.
-        - Understand Roman English/Hindi/Arabic.
-        - If DATA is found, display as HTML cards. 
-        - Important: Use dir="rtl" and text-align: right for Arabic.
+        You are 'Royal Estate AI'.
+        - If user speaks Arabic, reply in Arabic.
+        - If user speaks English/Roman English, reply in English.
+        - Use the provided DATA to show property cards.
+        - Current Language: {user_lang}.
         
-        HTML Card Template:
-        <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; background: white; color: #1e293b; text-align: {'right' if user_lang == 'Arabic' else 'left'}; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" dir="{'rtl' if user_lang == 'Arabic' else 'ltr'}">
-          <img src="VALUE_I" style="width: 100%; border-radius: 8px; height: 160px; object-fit: cover; margin-bottom: 8px;" />
-          <h4 style="margin: 0; color: #1e40af;">VALUE_N</h4>
-          <p style="font-size: 13px; margin: 5px 0;">📍 {'الموقع' if user_lang == 'Arabic' else 'Location'}: VALUE_A</p>
-          <p style="font-weight: bold; color: #059669;">💰 {'السعر' if user_lang == 'Arabic' else 'Price'}: VALUE_P</p>
-          <a href="VALUE_U" target="_blank" style="display: block; text-align: center; background: #1e40af; color: white; padding: 8px; border-radius: 6px; text-decoration: none; font-size: 14px; margin-top: 10px;">{'عرض التفاصيل' if user_lang == 'Arabic' else 'View Details'}</a>
-        </div>
-        
-        DATA: {json.dumps(matches[:3])} 
+        DATA: {json.dumps(matches[:3])}
         """
 
         final_res = client.chat.completions.create(
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
-            model="jais-30b-chat", # <-- JAIS Model
+            model="jais-30b-chat",
             temperature=0.3
         )
 
@@ -137,4 +147,4 @@ async def ask_ai(request: ChatRequest):
 
     except Exception as e:
         print(f"Error: {e}")
-        return {"reply": "Sorry, I am unable to fetch property details right now."}
+        return {"reply": "I'm having trouble connecting to my royal records."}
