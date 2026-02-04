@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 app = FastAPI()
 
+# CORS setup taaki Vercel se request block na ho
 app.add_middleware(
     CORSMiddleware, 
     allow_origins=["*"], 
@@ -21,22 +22,31 @@ app.add_middleware(
 CEREBRAS_KEY = os.getenv("CEREBRAS_API_KEY")
 EXCHANGE_KEY = os.getenv("EXCHANGE_API_KEY")
 BASE_SITE_URL = "https://my-royal-estate-app.vercel.app" 
+LISTING_API_URL = "https://royal-estate-uzii.onrender.com/api/listing/get-all-chatbot"
 
 client = Cerebras(api_key=CEREBRAS_KEY)
 
+# Helper: Live Currency Rates
 def get_live_rates():
     try:
         url = f"https://v6.exchangerate-api.com/v6/{EXCHANGE_KEY}/latest/USD"
         res = requests.get(url, timeout=5).json()
         return res.get('conversion_rates', {})
     except:
-        return {"SAR": 3.75, "INR": 83.5, "AED": 3.67, "USD": 1.0}
+        return {"SAR": 3.75, "INR": 83.5, "AED": 3.67, "USD": 1.0, "GBP": 0.79}
 
+# --- MODELS ---
 class ChatRequest(BaseModel):
     message: str
 
+class DescriptionRequest(BaseModel):
+    title: str
+    features: str
+    location: str
+
 user_context = {"last_location": "", "last_language": "English"}
 
+# --- ENDPOINT 1: AI Chatbot (Existing + Fixed) ---
 @app.post("/chat")
 async def ask_ai(request: ChatRequest):
     global user_context
@@ -44,13 +54,9 @@ async def ask_ai(request: ChatRequest):
         user_msg = request.message
         rates = get_live_rates()
 
-        # 1. Extraction: Roman English se kachra saaf karke sirf City nikalna
+        # 1. Extraction using Llama (Fast & Cheap for logic)
         extraction_prompt = f"""
         User Message: "{user_msg}"
-        Rules:
-        - Extract ONLY the city name (e.g., from "Riyadh me ghar" extract "Riyadh").
-        - If currency mentioned (INR/SAR/AED), extract it.
-        - Detect Language (Arabic/English).
         Return JSON ONLY: {{"location": "CityName", "currency": "Code/null", "lang": "Arabic/English"}}
         """
         
@@ -66,16 +72,16 @@ async def ask_ai(request: ChatRequest):
         info = json.loads(content.strip())
 
         new_loc = info.get("location")
-        if new_loc and new_loc.lower() not in ["none", "null"]:
+        if new_loc and str(new_loc).lower() not in ["none", "null"]:
             user_context["last_location"] = new_loc.lower()
         
         current_loc = user_context.get("last_location", "")
         target_curr = info.get("currency")
         user_lang = info.get("lang", "English")
 
-        # 2. Database Fetch
+        # 2. Database Fetch (Fixed URL)
         try:
-            db_res = requests.get("[https://royal-estate-uzii.onrender.com/api/listing/get-all-chatbot](https://royal-estate-uzii.onrender.com/api/listing/get-all-chatbot)", timeout=5)
+            db_res = requests.get(LISTING_API_URL, timeout=8)
             all_listings = db_res.json()
         except:
             all_listings = []
@@ -83,23 +89,16 @@ async def ask_ai(request: ChatRequest):
         matches = []
         for item in all_listings:
             search_pool = f"{item.get('name','')} {item.get('address','')} {item.get('description','')}".lower()
-            
             if current_loc and current_loc in search_pool:
                 orig_p = item.get('regularPrice', 0)
                 address_lower = item.get('address', '').lower()
 
-                # --- SMART CURRENCY DETECTION ---
-                # Listing ke address se base currency pata lagana
-                if any(x in address_lower for x in ["india", "bangalore", "mumbai"]):
-                    actual_base = "INR"
-                elif any(x in address_lower for x in ["uk", "london"]):
-                    actual_base = "GBP"
-                else:
-                    actual_base = "SAR"
+                # Base Currency Detection
+                actual_base = "SAR"
+                if any(x in address_lower for x in ["india", "bangalore"]): actual_base = "INR"
+                elif any(x in address_lower for x in ["uk", "london"]): actual_base = "GBP"
                 
                 price_display = f"{orig_p} {actual_base}"
-                
-                # Agar user ne conversion maangi ho
                 if target_curr and target_curr != "null" and target_curr != actual_base:
                     try:
                         usd_val = orig_p / rates.get(actual_base, 1.0)
@@ -117,14 +116,11 @@ async def ask_ai(request: ChatRequest):
 
         # 3. JAIS Final Response (Bilingual)
         system_prompt = f"""
-        You are 'Royal Estate AI'. 
-        If user_lang is 'Arabic', respond in Arabic. Else English.
-        Current Location: {current_loc}.
-        If DATA is empty, say "No properties found in {current_loc}" politely.
-        If DATA has items, describe them briefly and show the HTML cards.
+        You are 'Royal Estate AI'. Response Language: {user_lang}.
+        If DATA is empty, apologize politely. If DATA has items, show them using the HTML Template.
         
         HTML Template:
-        <div style="border: 1px solid #334155; border-radius: 12px; padding: 12px; margin-bottom: 15px; background: #1e293b; color: white; text-align: {'right' if user_lang == 'Arabic' else 'left'};" dir="{'rtl' if user_lang == 'Arabic' else 'ltr'}">
+        <div style="border: 1px solid #334155; border-radius: 12px; padding: 12px; margin-bottom: 15px; background: #1e293b; color: white;">
           <img src="VALUE_I" style="width: 100%; border-radius: 8px; height: 140px; object-fit: cover;" />
           <h4 style="margin: 8px 0; color: #fbbf24;">VALUE_N</h4>
           <p style="font-size: 12px;">📍 VALUE_A</p>
@@ -140,8 +136,31 @@ async def ask_ai(request: ChatRequest):
             model="jais-30b-chat",
             temperature=0.3
         )
-
         return {"reply": final_res.choices[0].message.content}
 
     except Exception as e:
-        return {"reply": "An error occurred. Please try again."}
+        return {"reply": f"Marhaba! I am facing a connection issue. Error: {str(e)}"}
+
+# --- ENDPOINT 2: Bilingual Content Generator (G42 Special) ---
+@app.post("/generate-listing-ai")
+async def generate_listing(request: DescriptionRequest):
+    try:
+        jais_prompt = f"""
+        Write a professional real estate listing in both English and Arabic.
+        Property: {request.title}
+        Features: {request.features}
+        Location: {request.location}
+        Make it sound luxurious and appealing. Use professional Arabic real estate terms.
+        """
+        response = client.chat.completions.create(
+            messages=[{"role": "user", "content": jais_prompt}],
+            model="jais-30b-chat",
+            temperature=0.7
+        )
+        return {"content": response.choices[0].message.content}
+    except Exception as e:
+        return {"error": str(e)}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
