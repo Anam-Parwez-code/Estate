@@ -54,10 +54,17 @@ async def ask_ai(request: ChatRequest):
         user_msg = request.message
         rates = get_live_rates()
 
-        # 1. Extraction using Llama (Fast & Cheap for logic)
+        # 1. Extraction with better prompt to avoid JSON errors
         extraction_prompt = f"""
         User Message: "{user_msg}"
-        Return JSON ONLY: {{"location": "CityName", "currency": "Code/null", "lang": "Arabic/English"}}
+        Identify:
+        1. Location
+        2. Currency (like USD, SAR, INR)
+        3. Language (Arabic or English)
+        
+        Return ONLY a JSON object:
+        {{"location": "value", "currency": "value", "lang": "value"}}
+        If any value is missing, use null (without quotes).
         """
         
         ex_res = client.chat.completions.create(
@@ -66,19 +73,17 @@ async def ask_ai(request: ChatRequest):
             temperature=0.1
         )
         
-        content = ex_res.choices[0].message.content
+        content = ex_res.choices[0].message.content.strip()
+        # Clean potential markdown from AI response
         if "```json" in content:
-            content = content.split("```json")[1].split("```")[0]
-        info = json.loads(content.strip())
-
-        new_loc = info.get("location")
-        if new_loc and str(new_loc).lower() not in ["none", "null"]:
-            user_context["last_location"] = new_loc.lower()
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
         
-        current_loc = user_context.get("last_location", "")
-        target_curr = info.get("currency")
-        user_lang = info.get("lang", "English")
-
+        try:
+            info = json.loads(content)
+        except:
+            info = {"location": None, "currency": None, "lang": "English"}
         # 2. Database Fetch (Fixed URL)
         try:
             db_res = requests.get(LISTING_API_URL, timeout=8)
@@ -86,34 +91,32 @@ async def ask_ai(request: ChatRequest):
         except:
             all_listings = []
 
-        matches = []
+       matches = []
         for item in all_listings:
-            search_pool = f"{item.get('name','')} {item.get('address','')} {item.get('description','')}".lower()
+            # ... (search pool logic) ...
             if current_loc and current_loc in search_pool:
                 orig_p = item.get('regularPrice', 0)
-                address_lower = item.get('address', '').lower()
-
-                # Base Currency Detection
-                actual_base = "SAR"
-                if any(x in address_lower for x in ["india", "bangalore"]): actual_base = "INR"
-                elif any(x in address_lower for x in ["uk", "london"]): actual_base = "GBP"
+                actual_base = "SAR" # Default
                 
+                # Simple currency conversion
+                target_curr = info.get("currency")
                 price_display = f"{orig_p} {actual_base}"
-                if target_curr and target_curr != "null" and target_curr != actual_base:
+                
+                if target_curr and str(target_curr).lower() != "none" and str(target_curr).lower() != "null":
                     try:
-                        usd_val = orig_p / rates.get(actual_base, 1.0)
+                        usd_val = orig_p / rates.get(actual_base, 3.75)
                         conv_p = round(usd_val * rates.get(target_curr, 1.0), 2)
                         price_display = f"{conv_p} {target_curr}"
-                    except: pass
-
+                    except:
+                        pass
+                
                 matches.append({
                     "n": item.get('name'),
                     "a": item.get('address'),
-                    "p": price_display,
+                    "p": price_display, # No more /null here
                     "i": item.get('imageUrls', [''])[0],
                     "u": f"{BASE_SITE_URL}/listing/{item.get('_id')}"
                 })
-
         # 3. JAIS Final Response (Bilingual)
         system_prompt = f"""
         You are 'Royal Estate AI'. Response Language: {user_lang}.
@@ -137,10 +140,10 @@ async def ask_ai(request: ChatRequest):
             temperature=0.1
         )
         return {"reply": final_res.choices[0].message.content}
-
-    except Exception as e:
-        return {"reply": f"Marhaba! I am facing a connection issue. Error: {str(e)}"}
-
+except Exception as e:
+        print(f"Chatbot Error: {str(e)}")
+        return {"reply": "I am having trouble finding those properties. Can you try again?"}
+ 
 # --- ENDPOINT 2: Bilingual Content Generator (G42 Special) ---
 @app.post("/generate-listing-ai")
 async def generate_listing(request: DescriptionRequest):
