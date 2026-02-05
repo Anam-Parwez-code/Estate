@@ -54,17 +54,12 @@ async def ask_ai(request: ChatRequest):
         user_msg = request.message
         rates = get_live_rates()
 
-        # 1. Extraction with better prompt to avoid JSON errors
+        # 1. Extraction with Strict Instruction
         extraction_prompt = f"""
         User Message: "{user_msg}"
-        Identify:
-        1. Location
-        2. Currency (like USD, SAR, INR)
-        3. Language (Arabic or English)
-        
-        Return ONLY a JSON object:
-        {{"location": "value", "currency": "value", "lang": "value"}}
-        If any value is missing, use null (without quotes).
+        Identify: location, currency, and language.
+        Return ONLY valid JSON like: {{"location": "riyadh", "currency": "USD", "lang": "English"}}
+        Do not include any extra text.
         """
         
         ex_res = client.chat.completions.create(
@@ -74,77 +69,77 @@ async def ask_ai(request: ChatRequest):
         )
         
         content = ex_res.choices[0].message.content.strip()
-        # Clean potential markdown from AI response
+
+        # --- FIX: JSON Cleaning Logic ---
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
-        
+
         try:
             info = json.loads(content)
         except:
-            info = {"location": None, "currency": None, "lang": "English"}
-        # 2. Database Fetch (Fixed URL)
+            # Fallback agar AI ne kachra bheja
+            info = {"location": "riyadh" if "riyadh" in user_msg.lower() else None, 
+                    "currency": "USD" if "usd" in user_msg.lower() else None, 
+                    "lang": "English"}
+
+        new_loc = info.get("location")
+        if new_loc and str(new_loc).lower() not in ["none", "null"]:
+            user_context["last_location"] = new_loc.lower()
+        
+        current_loc = user_context.get("last_location", "")
+        target_curr = info.get("currency")
+        user_lang = info.get("lang", "English")
+
+        # 2. Database Fetch
         try:
             db_res = requests.get(LISTING_API_URL, timeout=8)
             all_listings = db_res.json()
         except:
             all_listings = []
 
-       matches = []
+        matches = []
         for item in all_listings:
-            # ... (search pool logic) ...
+            search_pool = f"{item.get('name','')} {item.get('address','')} {item.get('description','')}".lower()
             if current_loc and current_loc in search_pool:
                 orig_p = item.get('regularPrice', 0)
-                actual_base = "SAR" # Default
+                actual_base = "SAR" # Default base
                 
-                # Simple currency conversion
-                target_curr = info.get("currency")
+                # --- FIX: Price Display Logic ---
                 price_display = f"{orig_p} {actual_base}"
                 
-                if target_curr and str(target_curr).lower() != "none" and str(target_curr).lower() != "null":
+                # Check if conversion is needed
+                if target_curr and str(target_curr).lower() not in ["none", "null", actual_base.lower()]:
                     try:
+                        # Convert to USD first then to Target (Assuming rates are relative to USD)
                         usd_val = orig_p / rates.get(actual_base, 3.75)
-                        conv_p = round(usd_val * rates.get(target_curr, 1.0), 2)
-                        price_display = f"{conv_p} {target_curr}"
+                        conv_p = round(usd_val * rates.get(target_curr.upper(), 1.0), 2)
+                        price_display = f"{conv_p} {target_curr.upper()}"
                     except:
                         pass
-                
+
                 matches.append({
                     "n": item.get('name'),
                     "a": item.get('address'),
-                    "p": price_display, # No more /null here
+                    "p": price_display,
                     "i": item.get('imageUrls', [''])[0],
                     "u": f"{BASE_SITE_URL}/listing/{item.get('_id')}"
                 })
-        # 3. JAIS Final Response (Bilingual)
-        system_prompt = f"""
-        You are 'Royal Estate AI'. Response Language: {user_lang}.
-        If DATA is empty, apologize politely. If DATA has items, show them using the HTML Template.
-        
-        HTML Template:
-        <div style="border: 1px solid #334155; border-radius: 12px; padding: 12px; margin-bottom: 15px; background: #1e293b; color: white;">
-          <img src="VALUE_I" style="width: 100%; border-radius: 8px; height: 140px; object-fit: cover;" />
-          <h4 style="margin: 8px 0; color: #fbbf24;">VALUE_N</h4>
-          <p style="font-size: 12px;">📍 VALUE_A</p>
-          <p style="font-weight: bold;">💰 VALUE_P</p>
-          <a href="VALUE_U" target="_blank" style="display: block; text-align: center; background: #fbbf24; color: black; padding: 8px; border-radius: 6px; text-decoration: none; font-weight: bold; margin-top: 10px;">Details</a>
-        </div>
-        
-        DATA: {json.dumps(matches[:3])}
-        """
+
+        # 3. Final Response using the HTML template
+        system_prompt = f"You are 'Royal Estate AI'. Response Language: {user_lang}. Show properties in the provided HTML format only. DATA: {json.dumps(matches[:3])}"
 
         final_res = client.chat.completions.create(
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
             model="llama3.1-8b",
-            temperature=0.1
+            temperature=0.3
         )
         return {"reply": final_res.choices[0].message.content}
-except Exception as e:
-        print(f"Chatbot Error: {str(e)}")
-        return {"reply": "I am having trouble finding those properties. Can you try again?"}
- 
-# --- ENDPOINT 2: Bilingual Content Generator (G42 Special) ---
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"reply": "I apologize, but I'm having trouble retrieving the listings right now. Please try again in a moment."}
 @app.post("/generate-listing-ai")
 async def generate_listing(request: DescriptionRequest):
     try:
