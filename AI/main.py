@@ -133,8 +133,8 @@ async def ask_ai(request: ChatRequest):
 
         final_res = client.chat.completions.create(
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
-            model="jais-30b-chat",
-            temperature=0.3
+            model="llama3.1-8b",
+            temperature=0
         )
         return {"reply": final_res.choices[0].message.content}
 
@@ -154,8 +154,8 @@ async def generate_listing(request: DescriptionRequest):
         """
         response = client.chat.completions.create(
             messages=[{"role": "user", "content": jais_prompt}],
-            model="jais-30b-chat",
-            temperature=0.7
+            model="llama3.1-8b",
+            temperature=0.3
         )
         return {"content": response.choices[0].message.content}
     except Exception as e:
