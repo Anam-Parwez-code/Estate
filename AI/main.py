@@ -144,36 +144,25 @@ async def ask_ai(request: ChatRequest):
 # --- ENDPOINT 2: Bilingual Content Generator (G42 Special) ---
 @app.post("/generate-listing-ai")
 async def generate_listing(request: DescriptionRequest):
-  try:
-        # Gulf Countries check karne ke liye keywords
-        gulf_keywords = ["uae", "saudi", "riyadh", "dubai", "qatar", "kuwait", "bahrain", "oman", "abu dhabi", "sharjah", "jeddah", "mecca"]
-        is_gulf = any(word in request.location.lower() for word in gulf_keywords)
+    try:
+        # Gulf location check
+        gulf_countries = ["uae", "saudi", "riyadh", "dubai", "qatar", "kuwait", "bahrain", "oman", "abu dhabi", "jeddah"]
+        is_gulf = any(word in request.location.lower() for word in gulf_countries)
 
         if is_gulf:
-            # Agar Gulf hai toh English + Arabic
             prompt = f"""
-            Write a professional real estate listing in BOTH English and Arabic.
-            Property: {request.title}
-            Features: {request.features}
-            Location: {request.location}
-            
-            INSTRUCTIONS:
-            - Provide English description first, then Arabic.
-            - Use professional Arabic real estate terms.
-            - DO NOT include any notes, explanations, or "Here is your listing" text.
+            Write a professional luxury real estate listing for {request.title} in {request.location}.
+            Features: {request.features}.
+            Format: Provide English first, then Arabic. 
+            Strictly NO notes, NO apologies, and NO conversational filler. 
+            Just the descriptions.
             """
         else:
-            # Agar Gulf nahi hai toh sirf English
             prompt = f"""
-            Write a professional real estate listing in English ONLY.
-            Property: {request.title}
-            Features: {request.features}
-            Location: {request.location}
-            
-            INSTRUCTIONS:
-            - Provide a high-quality English description.
-            - DO NOT provide Arabic.
-            - DO NOT include any notes or explanations.
+            Write a professional luxury real estate listing for {request.title} in {request.location}.
+            Features: {request.features}.
+            Format: Provide the description in English ONLY.
+            Strictly NO Arabic, NO notes, and NO conversational filler.
             """
 
         response = client.chat.completions.create(
@@ -184,7 +173,6 @@ async def generate_listing(request: DescriptionRequest):
         return {"content": response.choices[0].message.content}
     except Exception as e:
         return {"error": str(e)}
-I
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
