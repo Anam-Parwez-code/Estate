@@ -172,7 +172,7 @@ async def generate_listing(request: DescriptionRequest):
     except Exception as e:
         return {"error": str(e)}
 # ROI Analysis Endpoint
-@app.post("/api/ai-roi-analysis") # Aap chahein toh yahan /api laga sakte hain identify karne ke liye
+@app.post("/ai-roi-analysis") # Aap chahein toh yahan /api laga sakte hain identify karne ke liye
 async def get_roi_analysis(request: ROIRequest):
     try:
         prompt = f"""
