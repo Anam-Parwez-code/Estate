@@ -144,23 +144,47 @@ async def ask_ai(request: ChatRequest):
 # --- ENDPOINT 2: Bilingual Content Generator (G42 Special) ---
 @app.post("/generate-listing-ai")
 async def generate_listing(request: DescriptionRequest):
-    try:
-        jais_prompt = f"""
-        Write a professional real estate listing in both English and Arabic.
-        Property: {request.title}
-        Features: {request.features}
-        Location: {request.location}
-        Make it sound luxurious and appealing. Use professional Arabic real estate terms.
-        """
+  try:
+        # Gulf Countries check karne ke liye keywords
+        gulf_keywords = ["uae", "saudi", "riyadh", "dubai", "qatar", "kuwait", "bahrain", "oman", "abu dhabi", "sharjah", "jeddah", "mecca"]
+        is_gulf = any(word in request.location.lower() for word in gulf_keywords)
+
+        if is_gulf:
+            # Agar Gulf hai toh English + Arabic
+            prompt = f"""
+            Write a professional real estate listing in BOTH English and Arabic.
+            Property: {request.title}
+            Features: {request.features}
+            Location: {request.location}
+            
+            INSTRUCTIONS:
+            - Provide English description first, then Arabic.
+            - Use professional Arabic real estate terms.
+            - DO NOT include any notes, explanations, or "Here is your listing" text.
+            """
+        else:
+            # Agar Gulf nahi hai toh sirf English
+            prompt = f"""
+            Write a professional real estate listing in English ONLY.
+            Property: {request.title}
+            Features: {request.features}
+            Location: {request.location}
+            
+            INSTRUCTIONS:
+            - Provide a high-quality English description.
+            - DO NOT provide Arabic.
+            - DO NOT include any notes or explanations.
+            """
+
         response = client.chat.completions.create(
-            messages=[{"role": "user", "content": jais_prompt}],
+            messages=[{"role": "user", "content": prompt}],
             model="llama3.1-8b",
             temperature=0.3
         )
         return {"content": response.choices[0].message.content}
     except Exception as e:
         return {"error": str(e)}
-
+I
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
