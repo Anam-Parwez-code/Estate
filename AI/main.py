@@ -124,7 +124,7 @@ async def ask_ai(request: ChatRequest):
                     "a": item.get('address'),
                     "p": price_display,
                     "i": item.get('imageUrls', [''])[0],
-                    "u": f"{BASE_SITE_URL}/listing/{item.get('_id')}"
+                    "u": f"{BASE_SITE_URL}/listings/{item.get('_id')}"
                 })
 
         # 3. Final Response using the HTML template
