@@ -27,6 +27,8 @@ export default function Listing() {
   const [contact, setContact] = useState(false);
   const params = useParams();
   const { currentUser } = useSelector((state) => state.user);
+  const [analysis, setAnalysis] = useState("");
+  
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -63,6 +65,27 @@ export default function Listing() {
     };
     return symbols[curr] || '₹';
   };
+  const getAIAnalysis = async () => {
+  setLoading(true);
+  try {
+    const res = await fetch('https://my-royal-estate.onrender.com/ai-roi-prediction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: listing.name,
+        location: listing.address,
+        price: listing.regularPrice,
+        features: listing.description
+      }),
+    });
+    const data = await res.json();
+    setAnalysis(data.analysis);
+  } catch (error) {
+    console.error("AI Error:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main className='bg-primary min-h-screen pb-10'>
@@ -171,6 +194,30 @@ export default function Listing() {
             )}
             {contact && <Contact listing={listing} />}
           </div>
+          <div className="mt-6 border-t pt-4">
+  <button 
+    onClick={getAIAnalysis}
+    disabled={loading}
+    className="bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 p-3 flex items-center justify-center gap-2 w-full md:w-auto"
+  >
+    {loading ? 'AI is analyzing market...' : '✨ Get Free AI Investment Report'}
+  </button>
+
+  {analysis && (
+    <div className="mt-4 p-5 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl shadow-xl animate-in fade-in duration-500">
+      <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+        📊 Property Insights by Llama AI
+      </h3>
+      <div className="text-sm leading-relaxed whitespace-pre-wrap opacity-90">
+        {analysis}
+      </div>
+      <p className="text-[10px] mt-4 italic text-slate-400">
+        *Disclaimer: AI predictions are based on current market trends and not financial advice.
+      </p>
+    </div>
+  )}
+</div>
+          
         </div>
       )}
     </main>
