@@ -171,6 +171,35 @@ async def generate_listing(request: DescriptionRequest):
         return {"content": response.choices[0].message.content}
     except Exception as e:
         return {"error": str(e)}
+# ROI Analysis Endpoint
+@app.post("/api/ai-roi-analysis") # Aap chahein toh yahan /api laga sakte hain identify karne ke liye
+async def get_roi_analysis(request: ROIRequest):
+    try:
+        prompt = f"""
+        Act as a Real Estate Consultant for {request.location}.
+        Property: {request.title}
+        Price: {request.price} SAR
+        Features: {request.features}
+
+        Analyze:
+        1. Rental Yield % (Estimated)
+        2. 5-Year Appreciation potential
+        3. Recommendation (Buy/Hold/Avoid)
+        
+        Keep it professional and short.
+        """
+        
+        response = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama3.1-8b",
+            temperature=0.5
+        )
+        return {"analysis": response.choices[0].message.content}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
