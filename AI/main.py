@@ -63,7 +63,7 @@ async def ask_ai(request: ChatRequest):
         ex_res = client.chat.completions.create(
             messages=[{"role": "user", "content": extraction_prompt}],
             model="llama3.1-8b",
-            temperature=0
+            temperature=0.1
         )
         
         content = ex_res.choices[0].message.content
@@ -134,7 +134,7 @@ async def ask_ai(request: ChatRequest):
         final_res = client.chat.completions.create(
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
             model="llama3.1-8b",
-            temperature=0
+            temperature=0.1
         )
         return {"reply": final_res.choices[0].message.content}
 
