@@ -49,7 +49,7 @@ class DescriptionRequest(BaseModel):
 class ROIRequest(BaseModel): # <--- Ye missing tha
     title: str
     location: str
-    price: float
+    price: str
     features: str
 
 user_context = {"last_location": "", "last_language": "English"}
@@ -159,29 +159,42 @@ async def generate_listing(request: DescriptionRequest):
 
 # --- ENDPOINT 3: ROI Prediction (Fixed) ---
 @app.post("/ai-roi-prediction")
-async def get_roi_prediction(request: ROIRequest):
+async def predict_roi(data: ROIRequest):
     try:
+        # List of Gulf Countries
+        gulf_countries = ["UAE", "United Arab Emirates", "Saudi Arabia", "KSA", "Qatar", "Kuwait", "Bahrain", "Oman", "Dubai", "Abu Dhabi", "Riyadh"]
+        
+        # Check if location is in Gulf
+        is_gulf = any(country.lower() in data.location.lower() for country in gulf_countries)
+
+        if is_gulf:
+            language_instruction = "Provide the analysis in both English and Arabic (Bilingual)."
+        else:
+            language_instruction = "Provide the analysis in English only."
+
         prompt = f"""
-        Act as a Real Estate Consultant for {request.location}.
-        Property: {request.title}
-        Price: {request.price} SAR
-        Features: {request.features}
+        You are a Real Estate Expert. Analyze this property:
+        Title: {data.title}
+        Location: {data.location}
+        Price: {data.price}
+        Description: {data.features}
 
-        Analyze:
+        Instruction: {language_instruction}
+        
+        Format the report as:
         1. Rental Yield % (Estimated)
-        2. 5-Year Appreciation potential
-        3. Recommendation (Buy/Hold/Avoid)
-        Keep it professional and short.
+        2. 5-Year Appreciation Potential
+        3. Final Recommendation (BUY/HOLD/SELL)
         """
-        response = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama3.1-8b",
-            temperature=0.5
-        )
-        return {"analysis": response.choices[0].message.content}
-    except Exception as e:
-        return {"error": str(e)}
 
+        completion = client.chat.completions.create(
+            model="llama3.1-8b",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+        return {"analysis": completion.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
