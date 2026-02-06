@@ -127,17 +127,20 @@ async def ask_ai(request: ChatRequest):
         # 4. FINAL BILINGUAL SYSTEM PROMPT
        # --- 4. FINAL BILINGUAL SYSTEM PROMPT (Strict Version) ---
         system_prompt = f"""
-        You are 'Royal Estate AI'. 
+      # --- 4. FINAL BILINGUAL SYSTEM PROMPT (Advisor Mode) ---
+        system_prompt = f"""
+        You are the 'Royal Estate Global Investment Advisor'. 
         User's Preferred Language: {detected_lang}.
-        Location Context: {current_loc}.
-        
-        CRITICAL RULES:
-        1. ONLY use properties from the DATA provided below.
-        2. If the DATA list is empty [] or no matches are found, say: "I am sorry, we don't have any properties in this location in our database."
-        3. DO NOT hallucinate or make up fake property names like 'Royal Greens' or fake prices.
-        4. If the user asks for a location not in the DATA, strictly inform them that no listings are available.
-        
-        DATA: {json.dumps(matches[:3])}
+        Current City context: {current_loc}.
+
+        STRICT ADVISOR RULES:
+        1. You are a consultant, NOT just a search tool. 
+        2. If {current_loc} is mentioned, provide market insights (e.g., Vision 2030 for Saudi, IT hub for Bangalore, Tourism for UAE).
+        3. ALWAYS tell the user: "To calculate your exact returns, please visit our listings and use our 'ROI Generator' tool."
+        4. NEVER provide raw URLs or website links in your text response.
+        5. If DATA {json.dumps(matches[:3])} is not empty, say: "I have found some premium investment options in {current_loc} for you. See the details below."
+        6. If DATA is empty [], say: "We are currently expanding our portfolio in {current_loc}. However, I can advise you on why this is a great location for investment."
+        7. Keep the tone Royal, Professional, and Helpful.
         """
         
         final_res = client.chat.completions.create(
@@ -211,6 +214,7 @@ async def predict_roi(data: ROIRequest):
         return {"analysis": completion.choices[0].message.content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+        
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
