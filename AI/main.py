@@ -140,8 +140,10 @@ async def ask_ai(request: ChatRequest):
             temperature=0.3
         )
         
-        return {"response": final_res.choices[0].message.content}
-
+      return {
+            "response": final_res.choices[0].message.content, # AI ka text (Arabic/English)
+            "results": matches[:3] # <--- YE ZAROORI HAI: React isi se Cards banayega
+        }
     except Exception as e:
         return {"response": f"Error: {str(e)}"}
 # --- ENDPOINT 2: Description Generator ---
