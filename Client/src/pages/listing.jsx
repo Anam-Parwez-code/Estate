@@ -57,7 +57,7 @@ export default function Listing() {
     return symbols[curr] || '₹';
   };
 
-  const getAIAnalysis = async () => {
+ const getAIAnalysis = async () => {
     if (!listing) return;
     setAiLoading(true);
     setAnalysis("");
@@ -68,19 +68,20 @@ export default function Listing() {
         body: JSON.stringify({
           title: listing.name,
           location: listing.address,
-          price: Number(listing.regularPrice),
+          // YAHAN CHANGE HAI: Price ke saath listing ki asli currency bhej rahe hain
+          price: `${listing.offer ? listing.discountPrice : listing.regularPrice} ${listing.currency}`,
           features: listing.description
         }),
       });
+      if (!res.ok) throw new Error('Server Error');
       const data = await res.json();
       setAnalysis(data.analysis);
     } catch (error) {
-      setAnalysis("⚠️ AI Server is warming up. Please try again in a few seconds.");
+      setAnalysis("⚠️ AI service is busy. Please try again in a moment.");
     } finally {
       setAiLoading(false);
     }
   };
-
   return (
     <main className='bg-primary min-h-screen pb-10'>
       {loading && <p className='text-center py-20 text-2xl text-accent animate-pulse'>{t('loading_msg')}</p>}
