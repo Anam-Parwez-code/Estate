@@ -1,3 +1,4 @@
+
 import os
 import json
 import requests
@@ -10,10 +11,11 @@ from dotenv import load_dotenv
 load_dotenv()
 app = FastAPI()
 
-# CORS setup taaki Vercel se request block na ho
+# --- CORS setup (Fixed for Preflight) ---
 app.add_middleware(
     CORSMiddleware, 
-    allow_origins=["*"], 
+    allow_origins=["https://my-royal-estate-app.vercel.app", "http://localhost:5173"], 
+    allow_credentials=True,
     allow_methods=["*"], 
     allow_headers=["*"]
 )
@@ -35,7 +37,7 @@ def get_live_rates():
     except:
         return {"SAR": 3.75, "INR": 83.5, "AED": 3.67, "USD": 1.0, "GBP": 0.79}
 
-# --- MODELS ---
+# --- MODELS (Fixed: Added ROIRequest) ---
 class ChatRequest(BaseModel):
     message: str
 
@@ -44,9 +46,15 @@ class DescriptionRequest(BaseModel):
     features: str
     location: str
 
+class ROIRequest(BaseModel): # <--- Ye missing tha
+    title: str
+    location: str
+    price: float
+    features: str
+
 user_context = {"last_location": "", "last_language": "English"}
 
-# --- ENDPOINT 1: AI Chatbot (Existing + Fixed) ---
+# --- ENDPOINT 1: AI Chatbot ---
 @app.post("/chat")
 async def ask_ai(request: ChatRequest):
     global user_context
@@ -54,7 +62,6 @@ async def ask_ai(request: ChatRequest):
         user_msg = request.message
         rates = get_live_rates()
 
-        # 1. Extraction with Strict Instruction
         extraction_prompt = f"""
         User Message: "{user_msg}"
         Identify: location, currency, and language.
@@ -70,7 +77,6 @@ async def ask_ai(request: ChatRequest):
         
         content = ex_res.choices[0].message.content.strip()
 
-        # --- FIX: JSON Cleaning Logic ---
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
@@ -79,10 +85,7 @@ async def ask_ai(request: ChatRequest):
         try:
             info = json.loads(content)
         except:
-            # Fallback agar AI ne kachra bheja
-            info = {"location": "riyadh" if "riyadh" in user_msg.lower() else None, 
-                    "currency": "USD" if "usd" in user_msg.lower() else None, 
-                    "lang": "English"}
+            info = {"location": None, "currency": None, "lang": "English"}
 
         new_loc = info.get("location")
         if new_loc and str(new_loc).lower() not in ["none", "null"]:
@@ -92,7 +95,6 @@ async def ask_ai(request: ChatRequest):
         target_curr = info.get("currency")
         user_lang = info.get("lang", "English")
 
-        # 2. Database Fetch
         try:
             db_res = requests.get(LISTING_API_URL, timeout=8)
             all_listings = db_res.json()
@@ -104,15 +106,11 @@ async def ask_ai(request: ChatRequest):
             search_pool = f"{item.get('name','')} {item.get('address','')} {item.get('description','')}".lower()
             if current_loc and current_loc in search_pool:
                 orig_p = item.get('regularPrice', 0)
-                actual_base = "SAR" # Default base
-                
-                # --- FIX: Price Display Logic ---
+                actual_base = "SAR"
                 price_display = f"{orig_p} {actual_base}"
                 
-                # Check if conversion is needed
                 if target_curr and str(target_curr).lower() not in ["none", "null", actual_base.lower()]:
                     try:
-                        # Convert to USD first then to Target (Assuming rates are relative to USD)
                         usd_val = orig_p / rates.get(actual_base, 3.75)
                         conv_p = round(usd_val * rates.get(target_curr.upper(), 1.0), 2)
                         price_display = f"{conv_p} {target_curr.upper()}"
@@ -127,7 +125,6 @@ async def ask_ai(request: ChatRequest):
                     "u": f"{BASE_SITE_URL}/listings/{item.get('_id')}"
                 })
 
-        # 3. Final Response using the HTML template
         system_prompt = f"You are 'Royal Estate AI'. Response Language: {user_lang}. Show properties in the provided HTML format only. DATA: {json.dumps(matches[:3])}"
 
         final_res = client.chat.completions.create(
@@ -138,30 +135,18 @@ async def ask_ai(request: ChatRequest):
         return {"reply": final_res.choices[0].message.content}
 
     except Exception as e:
-        print(f"Error: {e}")
-        return {"reply": "I apologize, but I'm having trouble retrieving the listings right now. Please try again in a moment."}
+        return {"reply": f"Error: {str(e)}"}
+
+# --- ENDPOINT 2: Description Generator ---
 @app.post("/generate-listing-ai")
 async def generate_listing(request: DescriptionRequest):
     try:
-        # Gulf location check
         gulf_countries = ["uae", "saudi", "riyadh", "dubai", "qatar", "kuwait", "bahrain", "oman", "abu dhabi", "jeddah"]
         is_gulf = any(word in request.location.lower() for word in gulf_countries)
 
-        if is_gulf:
-            prompt = f"""
-            Write a professional luxury real estate listing for {request.title} in {request.location}.
-            Features: {request.features}.
-            Format: Provide English first, then Arabic. 
-            Strictly NO notes, NO apologies, and NO conversational filler. 
-            Just the descriptions.
-            """
-        else:
-            prompt = f"""
-            Write a professional luxury real estate listing for {request.title} in {request.location}.
-            Features: {request.features}.
-            Format: Provide the description in English ONLY.
-            Strictly NO Arabic, NO notes, and NO conversational filler.
-            """
+        prompt = f"""Write a professional real estate listing for {request.title} in {request.location}. 
+        Features: {request.features}. {'Provide English and Arabic' if is_gulf else 'English ONLY'}. 
+        No fillers."""
 
         response = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
@@ -171,8 +156,9 @@ async def generate_listing(request: DescriptionRequest):
         return {"content": response.choices[0].message.content}
     except Exception as e:
         return {"error": str(e)}
-# ROI Analysis Endpoint
-@app.post("/ai-roi-prediction") # Aap chahein toh yahan /api laga sakte hain identify karne ke liye
+
+# --- ENDPOINT 3: ROI Prediction (Fixed) ---
+@app.post("/ai-roi-prediction")
 async def get_roi_prediction(request: ROIRequest):
     try:
         prompt = f"""
@@ -185,10 +171,8 @@ async def get_roi_prediction(request: ROIRequest):
         1. Rental Yield % (Estimated)
         2. 5-Year Appreciation potential
         3. Recommendation (Buy/Hold/Avoid)
-        
         Keep it professional and short.
         """
-        
         response = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama3.1-8b",
@@ -197,8 +181,6 @@ async def get_roi_prediction(request: ROIRequest):
         return {"analysis": response.choices[0].message.content}
     except Exception as e:
         return {"error": str(e)}
-
-
 
 if __name__ == "__main__":
     import uvicorn
