@@ -194,31 +194,73 @@ export default function Listing() {
             )}
             {contact && <Contact listing={listing} />}
           </div>
-          <div className="mt-6 border-t pt-4">
-  <button 
-    onClick={getAIAnalysis}
-    disabled={loading}
-    className="bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 p-3 flex items-center justify-center gap-2 w-full md:w-auto"
-  >
-    {loading ? 'AI is analyzing market...' : '✨ Get Free AI Investment Report'}
-  </button>
+          {/* --- AI INVESTMENT SECTION --- */}
+<div className='mt-8 border-t border-slate-700/50 pt-8'>
+  <div className='flex flex-col gap-4'>
+    <h2 className='text-xl font-bold text-white flex items-center gap-2'>
+      <span className='w-8 h-[2px] bg-yellow-500'></span>
+      AI Investment Strategy
+    </h2>
+    
+    <button 
+      onClick={getAIAnalysis}
+      disabled={loading}
+      className={`
+        relative overflow-hidden group
+        w-full md:w-max px-8 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm
+        transition-all duration-300 shadow-[0_0_20px_rgba(234,179,8,0.2)]
+        ${loading 
+          ? 'bg-slate-700 text-slate-400 cursor-not-allowed' 
+          : 'bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600 text-primary hover:shadow-[0_0_30px_rgba(234,179,8,0.4)] hover:scale-[1.02] active:scale-[0.98]'
+        }
+      `}
+    >
+      <span className='relative z-10 flex items-center justify-center gap-2'>
+        {loading ? (
+          <>
+            <div className='w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin'></div>
+            Calculating ROI...
+          </>
+        ) : (
+          <>✨ Generate AI Investment Report</>
+        )}
+      </span>
+    </button>
 
-  {analysis && (
-    <div className="mt-4 p-5 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl shadow-xl animate-in fade-in duration-500">
-      <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-        📊 Property Insights by Llama AI
-      </h3>
-      <div className="text-sm leading-relaxed whitespace-pre-wrap opacity-90">
-        {analysis}
-      </div>
-      <p className="text-[10px] mt-4 italic text-slate-400">
-        *Disclaimer: AI predictions are based on current market trends and not financial advice.
-      </p>
-    </div>
-  )}
-</div>
+    {/* AI Analysis Display Box */}
+    {analysis && (
+      <div className='mt-6 animate-fadeIn'>
+        <div className='relative p-6 rounded-3xl bg-slate-900/80 border border-yellow-500/30 backdrop-blur-xl shadow-2xl'>
+          {/* Decorative Corner */}
+          <div className='absolute top-0 right-0 p-2 opacity-20'>
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className="text-yellow-500">
+              <path d="M0 2H38V40" stroke="currentColor" strokeWidth="4"/>
+            </svg>
+          </div>
+
+          <h3 className='text-yellow-500 font-bold text-lg mb-4 flex items-center gap-2'>
+            📊 Market Insights by Llama 3.1
+          </h3>
           
+          <div className='text-slate-200 text-sm leading-relaxed whitespace-pre-wrap font-medium'>
+            {analysis}
+          </div>
+
+          <div className='mt-6 pt-4 border-t border-slate-700/50 flex justify-between items-center'>
+            <span className='text-[10px] uppercase tracking-tighter text-slate-500 italic'>
+              Verified Analysis for {listing.address}
+            </span>
+            <div className='flex gap-1'>
+              <div className='w-1 h-1 rounded-full bg-yellow-500'></div>
+              <div className='w-1 h-1 rounded-full bg-yellow-500/50'></div>
+              <div className='w-1 h-1 rounded-full bg-yellow-500/20'></div>
+            </div>
+          </div>
         </div>
+      </div>
+    )}
+  </div>
+</div>
       )}
     </main>
   );
