@@ -71,7 +71,7 @@ export default function Listing() {
   setAnalysis("");
 
   try {
-    const res = await fetch('https://my-royal-estate.onrender.com/ai-roi-prediction', {
+    const res = await fetch('https://royal-estate-ai.onrender.com/ai-roi-prediction', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
