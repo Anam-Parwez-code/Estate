@@ -8,12 +8,14 @@ import SignUp from './pages/SignUp';
 import About from './pages/about';
 import Profile from './pages/Profile';
 import Header from './components/Header';
+import AIChatbot from './components/AIChatbot';
 import PrivateRoute from './components/PrivateRoute';
 import CreateListing from './pages/CreateListing';
 import UpdateListing from './pages/UpdateListing';
 import Listing from './pages/listing';
 import Search from './pages/Search';
 import Inbox from './components/Inbox';
+
 import axiosInstance from './services/api'; // <--- YE IMPORT ZAROORI HAI
 
 export default function App() {
@@ -65,7 +67,7 @@ export default function App() {
           </Route>
         </Routes>
         {/* Chatbot ko yahan uncomment kar dena jab use karna ho */}
-        {/* <AIChatbot listings={allListings} /> */}
+         <AIChatbot listings={allListings} /> 
       </BrowserRouter>
     </HelmetProvider>
   );
