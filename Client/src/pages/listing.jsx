@@ -66,7 +66,10 @@ export default function Listing() {
     return symbols[curr] || '₹';
   };
   const getAIAnalysis = async () => {
+    if (!listing) return;
   setLoading(true);
+  setAnalysis("");
+
   try {
     const res = await fetch('https://my-royal-estate.onrender.com/ai-roi-prediction', {
       method: 'POST',
@@ -78,10 +81,12 @@ export default function Listing() {
         features: listing.description
       }),
     });
+    if (!res.ok) throw new Error('CORS or Server Error');
     const data = await res.json();
     setAnalysis(data.analysis);
   } catch (error) {
     console.error("AI Error:", error);
+    setAnalysis("⚠️ Connectivity issues with AI server. Please ensure the backend is live.");
   } finally {
     setLoading(false);
   }
