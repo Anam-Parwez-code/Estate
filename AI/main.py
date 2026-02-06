@@ -2,7 +2,7 @@
 import os
 import json
 import requests
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from cerebras.cloud.sdk import Cerebras
@@ -62,11 +62,14 @@ async def ask_ai(request: ChatRequest):
         user_msg = request.message
         rates = get_live_rates()
 
+        # 1. AI detects Location, Currency AND Language
         extraction_prompt = f"""
         User Message: "{user_msg}"
-        Identify: location, currency, and language.
-        Return ONLY valid JSON like: {{"location": "riyadh", "currency": "USD", "lang": "English"}}
-        Do not include any extra text.
+        Identify: 
+        1. location (city name)
+        2. target currency (e.g. USD, INR, SAR, or none)
+        3. language (is the user speaking Arabic, English, or Hindi?)
+        Return ONLY valid JSON: {{"location": "city", "target_currency": "USD/none", "lang": "Arabic/English"}}
         """
         
         ex_res = client.chat.completions.create(
@@ -76,67 +79,71 @@ async def ask_ai(request: ChatRequest):
         )
         
         content = ex_res.choices[0].message.content.strip()
-
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0].strip()
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0].strip()
-
         try:
+            if "```" in content: content = content.split("```")[1].replace("json", "").strip()
             info = json.loads(content)
         except:
-            info = {"location": None, "currency": None, "lang": "English"}
+            info = {"location": None, "target_currency": "none", "lang": "English"}
 
-        new_loc = info.get("location")
-        if new_loc and str(new_loc).lower() not in ["none", "null"]:
-            user_context["last_location"] = new_loc.lower()
+        if info.get("location"): user_context["last_location"] = info["location"].lower()
         
         current_loc = user_context.get("last_location", "")
-        target_curr = info.get("currency")
-        user_lang = info.get("lang", "English")
+        target_curr = info.get("target_currency", "none")
+        detected_lang = info.get("lang", "English")
 
+        # 2. Database Fetch (Same as before)
         try:
             db_res = requests.get(LISTING_API_URL, timeout=8)
             all_listings = db_res.json()
-        except:
-            all_listings = []
+        except: all_listings = []
 
+        # 3. Filter & Price Logic
         matches = []
         for item in all_listings:
             search_pool = f"{item.get('name','')} {item.get('address','')} {item.get('description','')}".lower()
             if current_loc and current_loc in search_pool:
                 orig_p = item.get('regularPrice', 0)
-                actual_base = "SAR"
-                price_display = f"{orig_p} {actual_base}"
                 
-                if target_curr and str(target_curr).lower() not in ["none", "null", actual_base.lower()]:
+                if target_curr != "none":
                     try:
-                        usd_val = orig_p / rates.get(actual_base, 3.75)
+                        base = "INR" if "india" in item.get('address','').lower() else "SAR"
+                        usd_val = float(orig_p) / rates.get(base, 1.0)
                         conv_p = round(usd_val * rates.get(target_curr.upper(), 1.0), 2)
-                        price_display = f"{conv_p} {target_curr.upper()}"
-                    except:
-                        pass
+                        final_price = f"{conv_p} {target_curr.upper()}"
+                    except: final_price = f"{orig_p}"
+                else:
+                    final_price = f"{orig_p}"
 
                 matches.append({
-                    "n": item.get('name'),
-                    "a": item.get('address'),
-                    "p": price_display,
-                    "i": item.get('imageUrls', [''])[0],
-                    "u": f"{BASE_SITE_URL}/listings/{item.get('_id')}"
+                    "name": item.get('name'),
+                    "address": item.get('address'),
+                    "price": final_price,
+                    "link": f"{BASE_SITE_URL}/listings/{item.get('_id')}"
                 })
 
-        system_prompt = f"You are 'Royal Estate AI'. Response Language: {user_lang}. Show properties in the provided HTML format only. DATA: {json.dumps(matches[:3])}"
-
+        # 4. FINAL BILINGUAL SYSTEM PROMPT
+        system_prompt = f"""
+        You are 'Royal Estate AI'. 
+        User's Preferred Language: {detected_lang}.
+        Location Context: {current_loc}.
+        
+        INSTRUCTIONS:
+        - If the user speaks in Arabic or asks about Riyadh/Dubai, respond in a mix of Arabic and English (Bilingual).
+        - If the user speaks in English or asks about Bangalore, respond in English.
+        - Show property details clearly.
+        - DATA: {json.dumps(matches[:3])}
+        """
+        
         final_res = client.chat.completions.create(
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
             model="llama3.1-8b",
             temperature=0.3
         )
-        return {"reply": final_res.choices[0].message.content}
+        
+        return {"response": final_res.choices[0].message.content}
 
     except Exception as e:
-        return {"reply": f"Error: {str(e)}"}
-
+        return {"response": f"Error: {str(e)}"}
 # --- ENDPOINT 2: Description Generator ---
 @app.post("/generate-listing-ai")
 async def generate_listing(request: DescriptionRequest):
