@@ -126,7 +126,7 @@ async def ask_ai(request: ChatRequest):
 
         # 4. FINAL BILINGUAL SYSTEM PROMPT
        # --- 4. FINAL BILINGUAL SYSTEM PROMPT (Strict Version) ---
-        system_prompt = f"""
+       
       # --- 4. FINAL BILINGUAL SYSTEM PROMPT (Advisor Mode) ---
         system_prompt = f"""
         You are the 'Royal Estate Global Investment Advisor'. 
