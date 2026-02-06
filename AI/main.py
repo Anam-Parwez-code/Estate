@@ -53,6 +53,9 @@ class ROIRequest(BaseModel): # <--- Ye missing tha
     features: str
 
 user_context = {"last_location": "", "last_language": "English"}
+@app.get("/")
+async def root():
+    return {"message": "AI Server is running!"}
 
 # --- ENDPOINT 1: AI Chatbot ---
 @app.post("/chat")
