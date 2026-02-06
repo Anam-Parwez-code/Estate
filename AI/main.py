@@ -118,7 +118,7 @@ async def ask_ai(request: ChatRequest):
                     "name": item.get('name'),
                     "address": item.get('address'),
                     "price": final_price,
-                    "link": f"{BASE_SITE_URL}/listings/{item.get('_id')}"
+                    "link": f"{BASE_SITE_URL}/listing/{item.get('_id')}"
                 })
 
         # 4. FINAL BILINGUAL SYSTEM PROMPT
