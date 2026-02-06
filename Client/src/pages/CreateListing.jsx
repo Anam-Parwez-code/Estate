@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axiosInstance from '../services/api';
 import axios from 'axios'; // Import axios for direct backend call
+import { FaPlus } from 'react-icons/fa';
 
 export default function CreateListing() {
   const { t } = useTranslation();
@@ -249,28 +250,68 @@ export default function CreateListing() {
           </div>
 
           {/* Right Side */}
-          <div className='flex flex-col flex-1 gap-4'>
-            <p className='font-semibold'>{t('gallery_title')}</p>
-            <div className='flex gap-4'>
-              <input onChange={(e) => setFiles(e.target.files)} className='p-3 border border-slate-700 rounded-xl w-full' type='file' id='images' accept='image/*' multiple />
-              <button type='button' disabled={uploading} onClick={handleImageSubmit} className='p-3 text-accent border border-accent rounded-xl hover:bg-accent hover:text-primary transition-all uppercase text-sm font-bold disabled:opacity-50'>
-                {uploading ? t('btn_uploading') : t('btn_confirm')}
-              </button>
-            </div>
-            <p className='text-red-400 text-xs'>{imageUploadError && imageUploadError}</p>
-            <div className='grid grid-cols-2 gap-3'>
-              {formData.imageUrls.map((url, index) => (
-                <div key={url} className='relative group rounded-xl overflow-hidden border border-slate-700'>
-                  <img src={url} alt='listing' className='w-full h-24 object-cover' />
-                  <button type='button' onClick={() => handleRemoveImage(index)} className='absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold'>REMOVE</button>
-                </div>
-              ))}
-            </div>
-            <button disabled={loading || uploading} className='p-4 bg-accent text-primary font-bold rounded-xl uppercase hover:opacity-90 shadow-lg mt-4'>
-              {loading ? t('btn_creating') : t('btn_publish')}
-            </button>
-            {error && <p className='text-red-400 text-sm mt-2'>{error}</p>}
-          </div>
+        <div className='flex flex-col flex-1 gap-4'>
+  <p className='font-semibold'>
+    {t('gallery_title')} <span className='text-xs font-normal text-slate-400'>(Max 6)</span>
+  </p>
+
+  {/* Grid Layout for Plus Button and Previews */}
+  <div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
+    
+    {/* 1. PLUS BUTTON (Custom File Input) */}
+    {formData.imageUrls.length < 6 && (
+      <label className='flex flex-col items-center justify-center h-24 border-2 border-dashed border-slate-700 rounded-xl cursor-pointer hover:border-accent hover:bg-slate-800/50 transition-all group'>
+        <span className='text-3xl text-slate-500 group-hover:text-accent transition-colors'>+</span>
+        <span className='text-[10px] text-slate-500 group-hover:text-accent uppercase font-bold'>Add Photo</span>
+        <input 
+          type='file' 
+          id='images' 
+          accept='image/*' 
+          multiple 
+          className='hidden' 
+          onChange={(e) => setFiles(e.target.files)} 
+        />
+      </label>
+    )}
+
+    {/* 2. IMAGE PREVIEWS (Map existing URLs) */}
+    {formData.imageUrls.map((url, index) => (
+      <div key={url} className='relative group rounded-xl overflow-hidden border border-slate-700 h-24 shadow-md'>
+        <img src={url} alt='listing' className='w-full h-full object-cover' />
+        <button 
+          type='button' 
+          onClick={() => handleRemoveImage(index)} 
+          className='absolute inset-0 bg-red-600/60 text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs uppercase'
+        >
+          Remove
+        </button>
+      </div>
+    ))}
+  </div>
+
+  {/* 3. UPLOAD/CONFIRM BUTTON (Dikhayega jab files select hongi) */}
+  {files.length > 0 && (
+    <button 
+      type='button' 
+      disabled={uploading} 
+      onClick={handleImageSubmit} 
+      className='p-2 text-accent border border-accent rounded-xl hover:bg-accent hover:text-primary transition-all uppercase text-xs font-bold disabled:opacity-50'
+    >
+      {uploading ? t('btn_uploading') : `Confirm Upload (${files.length} files)`}
+    </button>
+  )}
+
+  <p className='text-red-400 text-xs'>{imageUploadError && imageUploadError}</p>
+
+  <button 
+    disabled={loading || uploading} 
+    className='p-4 bg-accent text-primary font-bold rounded-xl uppercase hover:opacity-90 shadow-lg mt-4 disabled:opacity-50'
+  >
+    {loading ? t('btn_creating') : t('btn_publish')}
+  </button>
+  
+  {error && <p className='text-red-400 text-sm mt-2'>{error}</p>}
+</div>
         </form>
       </div>
     </main>
