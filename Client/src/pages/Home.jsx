@@ -53,7 +53,7 @@ export default function Home() {
 
     fetchOfferListings();
   }, []);
-  const allListings = [...offerListings, ...rentListings, ...saleListings];
+  const allListings = [...(offerListings || []), ...(rentListings || []), ...(saleListings || [])];
 
  
   return (
