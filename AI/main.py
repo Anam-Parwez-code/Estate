@@ -122,27 +122,31 @@ async def ask_ai(request: ChatRequest):
                 })
 
         # 4. FINAL BILINGUAL SYSTEM PROMPT
+       # --- 4. FINAL BILINGUAL SYSTEM PROMPT (Strict Version) ---
         system_prompt = f"""
         You are 'Royal Estate AI'. 
         User's Preferred Language: {detected_lang}.
         Location Context: {current_loc}.
         
-        INSTRUCTIONS:
-        - If the user speaks in Arabic or asks about Riyadh/Dubai, respond in a mix of Arabic and English (Bilingual).
-        - If the user speaks in English or asks about Bangalore, respond in English.
-        - Show property details clearly.
-        - DATA: {json.dumps(matches[:3])}
+        CRITICAL RULES:
+        1. ONLY use properties from the DATA provided below.
+        2. If the DATA list is empty [] or no matches are found, say: "I am sorry, we don't have any properties in this location in our database."
+        3. DO NOT hallucinate or make up fake property names like 'Royal Greens' or fake prices.
+        4. If the user asks for a location not in the DATA, strictly inform them that no listings are available.
+        
+        DATA: {json.dumps(matches[:3])}
         """
         
         final_res = client.chat.completions.create(
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
             model="llama3.1-8b",
-            temperature=0.3
+            temperature=0.1 # Isse AI "serious" rahega, bakwas nahi karega
         )
         
-      return {
-            "response": final_res.choices[0].message.content, # AI ka text (Arabic/English)
-            "results": matches[:3] # <--- YE ZAROORI HAI: React isi se Cards banayega
+        # --- RETURN STRUCTURE (Very Important for React Cards) ---
+        return {
+            "response": final_res.choices[0].message.content,
+            "results": matches[:3] 
         }
     except Exception as e:
         return {"response": f"Error: {str(e)}"}
