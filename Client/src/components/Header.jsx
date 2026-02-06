@@ -82,7 +82,7 @@ export default function Header() {
           
           <Link to='/about'>
             <li className='hidden md:inline text-slate-200 hover:text-accent transition-colors font-medium'>
-              {t('nav_about')} yes
+              {t('nav_about')} 
             </li>
           </Link>
 
