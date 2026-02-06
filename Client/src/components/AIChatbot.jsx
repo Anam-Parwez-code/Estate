@@ -16,7 +16,7 @@ export default function AIChatbot({ listings }) {
   const scrollRef = useRef();
 
   // URL should match your Render Deployment
-  const AI_SERVER_URL = "https://royal-estate-uzii.onrender.com/chat";
+  const AI_SERVER_URL = "https://royal-estate-ai.onrender.com/chat";
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
