@@ -19,13 +19,17 @@ export default function ListingItem({ listing }) {
   return (
     <div className='bg-slate-800/40 border border-slate-700/50 shadow-xl hover:shadow-accent/10 transition-all overflow-hidden rounded-2xl w-full sm:w-[330px] group'>
       <Link to={`/listing/${listing._id}`}>
-        <div className='relative overflow-hidden'>
+        <div className='relative overflow-hidden bg-slate-700'>
           <img
             src={
-              listing.imageUrls[0] ||
-              'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg'
+              listing.imageUrls && listing.imageUrls.length > 0
+             ? listing.imageUrls[0] 
+             : 'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg'
             }
             alt='listing cover'
+            fetchpriority="high" 
+            decoding="async"
+            loading="eager"
             className='h-[320px] sm:h-[220px] w-full object-cover group-hover:scale-110 transition-transform duration-500'
           />
           {/* --- TRANSLATED BADGE --- */}
