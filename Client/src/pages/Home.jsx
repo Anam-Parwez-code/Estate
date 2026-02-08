@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
+import { Navigation,Autoplay } from 'swiper/modules';
 import SwiperCore from 'swiper';
 import 'swiper/css/bundle';
 import ListingItem from '../components/ListingItem';
@@ -15,7 +15,7 @@ export default function Home() {
   const [saleListings, setSaleListings] = useState([]);
   const [rentListings, setRentListings] = useState([]);
   const { t } = useTranslation();
-  SwiperCore.use([Navigation]);
+  SwiperCore.use([Navigation,Autoplay]);
 
   useEffect(() => {
     // 2. Fetch ki jagah axiosInstance.get use karein
@@ -87,12 +87,12 @@ export default function Home() {
     navigation 
     autoplay={{ delay: 3000 }} 
     loop={true}
-    className='mySwiper'
+  
   >
     {offerListings && offerListings.length > 0 &&
       offerListings.map((listing) => (
         <SwiperSlide key={listing._id}>
-          <div className='relative w-full h-[550px]'>
+          <div className='w-full h-[550px]'>
              <img 
                 src={listing.imageUrls[0]} 
                 alt={listing.name}
