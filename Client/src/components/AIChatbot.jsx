@@ -9,7 +9,7 @@ export default function AIChatbot() {
   const [isTyping, setIsTyping] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Welcome to Royal Estate. I am your **Bilingual Investment Advisor**. \n\nHow can I help you analyze market trends or project your ROI today?' }
+    { role: 'assistant', content: 'Welcome to Royal Estate. I am your **Investment Advisor**. \n\nHow can I help you analyze market trends or project your ROI today?' }
   ]);
   const scrollRef = useRef();
   const AI_SERVER_URL = "https://royal-estate-ai.onrender.com/chat";
