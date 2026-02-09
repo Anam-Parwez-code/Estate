@@ -249,7 +249,7 @@ export default function CreateListing() {
               </select>
               <div className='flex items-center gap-2'>
                 <input type='number' id='regularPrice' required className='p-3 bg-slate-800 border border-slate-700 rounded-xl' onChange={handleChange} value={formData.regularPrice} />
-               <span className='text-xs'>{t('label_reg_price')} {formData.type === 'rent' && <span className='text-accent'>(/ month)</span>}</span>
+               <span className='text-xs'>{t('label_reg_price')} {formData.type === 'rent' && <span className='text-accent'>({formData.currency}/ month)</span>}</span>
               </div>
            
           {formData.offer && (
