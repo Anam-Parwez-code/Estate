@@ -4,7 +4,11 @@ import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation,Autoplay } from 'swiper/modules';
 import SwiperCore from 'swiper';
-import 'swiper/css/bundle';
+//import 'swiper/css/bundle';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/autoplay';
 import ListingItem from '../components/ListingItem';
 import AIChatbot from '../components/AIChatbot.jsx';
 import { useTranslation } from 'react-i18next';
@@ -82,42 +86,36 @@ export default function Home() {
       </div>
 
    {/* Swiper Section - Top Featured Listings */}
-<div className='w-full'>
-  <Swiper 
-    modules={[Navigation, Autoplay]} 
-    navigation 
-    autoplay={{ delay: 3000, disableOnInteraction: false }}
-    loop={offerListings && offerListings.length > 1}
-  >
-    {offerListings && offerListings.length > 0 &&
-      offerListings.map((listing) => (
+<div className='w-full overflow-hidden'>
+  {offerListings && offerListings.length > 0 && (
+    <Swiper
+      modules={[Navigation, Autoplay]}
+      navigation
+      autoplay={{ delay: 3000 }}
+      loop={offerListings.length > 1}
+    >
+      {offerListings.map((listing) => (
         <SwiperSlide key={listing._id}>
           <Link to={`/listing/${listing._id}`}>
-            <div
-              style={{
-                background: `url(${listing.imageUrls[0]}) center no-repeat`,
-                backgroundSize: 'cover',
-              }}
-              className='h-[550px] w-full relative group'
-            >
-              {/* Overlay for Professional Look */}
-              <div className='absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300'></div>
-              
-              <div className='absolute bottom-20 left-4 md:left-20 bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-2xl'>
-                <h2 className='text-white text-2xl md:text-4xl font-bold mb-2'>
-                  {listing.name}
-                </h2>
-                <p className='text-accent text-xl md:text-2xl font-semibold'>
-                  {listing.currency || 'INR'} {listing.offer ? listing.discountPrice.toLocaleString() : listing.regularPrice.toLocaleString()}
-                  {listing.type === 'rent' && <span className='text-sm text-slate-300 ml-1'>/ month</span>}
+            <div className='relative w-full h-[550px]'>
+              <img 
+                src={listing.imageUrls[0]} 
+                alt="Property" 
+                className='w-full h-full object-cover'
+              />
+              <div className='absolute inset-0 bg-gradient-to-t from-black/70 to-transparent'></div>
+              <div className='absolute bottom-20 left-10'>
+                <h2 className='text-white text-4xl font-bold'>{listing.name}</h2>
+                <p className='text-accent text-2xl'>
+                  {listing.currency} {listing.offer ? listing.discountPrice : listing.regularPrice}
                 </p>
               </div>
             </div>
           </Link>
         </SwiperSlide>
-      ))
-    }
-  </Swiper>
+      ))}
+    </Swiper>
+  )}
 </div>
       {/* Listings Section */}
       <div className='max-w-6xl mx-auto p-3 flex flex-col gap-8 my-10'>
