@@ -87,7 +87,7 @@ export default function Home() {
   modules={[Navigation, Autoplay]} 
   navigation 
   autoplay={{ delay: 3000, disableOnInteraction: false }}
-    loop={true}
+    loop={offerListings && offerListings.length > 1}
   
   >
     {offerListings && offerListings.length > 0 &&
