@@ -3,6 +3,8 @@ import os
 import json
 import requests
 from fastapi import FastAPI,HTTPException
+from fastapi.responses import StreamingResponse
+import asyncio
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from cerebras.cloud.sdk import Cerebras
@@ -58,160 +60,110 @@ async def root():
     return {"message": "AI Server is running!"}
 
 # --- ENDPOINT 1: AI Chatbot ---
+# --- Updated ENDPOINT: AI Property Advisor ---
 @app.post("/chat")
 async def ask_ai(request: ChatRequest):
-    global user_context
     try:
         user_msg = request.message
-        rates = get_live_rates()
 
-        # 1. AI detects Location, Currency AND Language
-        extraction_prompt = f"""
-        User Message: "{user_msg}"
-        Identify: 
-        1. location (city name)
-        2. target currency (e.g. USD, INR, SAR, or none)
-        3. language (is the user speaking Arabic, English, or Hindi?)
-        Return ONLY valid JSON: {{"location": "city", "target_currency": "USD/none", "lang": "Arabic/English"}}
-        """
+        # 1. Quick Language & Context Detection (Temperature 0 for Speed)
+        extraction_prompt = f"Detect language (Arabic/English/Hindi/Roman Hindi) and city from: '{user_msg}'. Return ONLY JSON: {{\"location\": \"city\", \"lang\": \"language\"}}"
         
         ex_res = client.chat.completions.create(
             messages=[{"role": "user", "content": extraction_prompt}],
             model="llama3.1-8b",
-            temperature=0.1
+            temperature=0
         )
         
-        content = ex_res.choices[0].message.content.strip()
         try:
-            if "```" in content: content = content.split("```")[1].replace("json", "").strip()
+            content = ex_res.choices[0].message.content.strip()
             info = json.loads(content)
         except:
-            info = {"location": None, "target_currency": "none", "lang": "English"}
+            info = {"location": "Riyadh", "lang": "English"}
 
-        if info.get("location"): user_context["last_location"] = info["location"].lower()
-        
-        current_loc = user_context.get("last_location", "")
-        target_curr = info.get("target_currency", "none")
-        detected_lang = info.get("lang", "English")
+        # 2. STREAMING ADVISOR ENGINE (Real-time speed)
+        async def event_generator():
+            system_prompt = f"""
+            You are the 'Royal Estate Global Investment Advisor'. 
+            ROLE: You are a professional human-like consultant. 
+            STRICT RULES:
+            1. DO NOT search or provide property listings or database links.
+            2. PROVIDE expert advice on market trends, ROI, and investment benefits.
+            3. If the user mentions Riyadh or Saudi, talk about 'Vision 2030' and why it's a goldmine.
+            4. LANGUAGES: Reply in the SAME language/style as the user. (Support: Arabic, Hindi, Roman Hindi, English).
+            5. If they ask for specific houses, tell them: "Main aapko market ki sahi jaankari de sakta hoon, properties dekhne ke liye hamara search page check karein."
+            6. Tone: Royal, Wise, and Fast.
+            """
+            
+            stream = client.chat.completions.create(
+                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
+                model="llama3.1-8b",
+                temperature=0.3, # Thoda natural baat karne ke liye
+                stream=True
+            )
 
-        # 2. Database Fetch (Same as before)
-        try:
-            db_res = requests.get(LISTING_API_URL, timeout=8)
-            all_listings = db_res.json()
-        except: all_listings = []
+            for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+                    await asyncio.sleep(0.01)
 
-        # 3. Filter & Price Logic
-        matches = []
-        for item in all_listings:
-            search_pool = f"{item.get('name','')} {item.get('address','')} {item.get('description','')}".lower()
-            if current_loc and current_loc in search_pool:
-                orig_p = item.get('regularPrice', 0)
-                
-                if target_curr != "none":
-                    try:
-                        base = "INR" if "india" in item.get('address','').lower() else "SAR"
-                        usd_val = float(orig_p) / rates.get(base, 1.0)
-                        conv_p = round(usd_val * rates.get(target_curr.upper(), 1.0), 2)
-                        final_price = f"{conv_p} {target_curr.upper()}"
-                    except: final_price = f"{orig_p}"
-                else:
-                    final_price = f"{orig_p}"
+        return StreamingResponse(event_generator(), media_type="text/plain")
 
-                matches.append({
-                    "name": item.get('name'),
-                    "address": item.get('address'),
-                    "price": final_price,
-                    "link": f"{BASE_SITE_URL}/listing/{item.get('_id')}"
-                })
-
-        # 4. FINAL BILINGUAL SYSTEM PROMPT
-       # --- 4. FINAL BILINGUAL SYSTEM PROMPT (Strict Version) ---
-       
-      # --- 4. FINAL BILINGUAL SYSTEM PROMPT (Advisor Mode) ---
-        system_prompt = f"""
-        You are the 'Royal Estate Global Investment Advisor'. 
-        User's Preferred Language: {detected_lang}.
-        Current City context: {current_loc}.
-
-        STRICT ADVISOR RULES:
-        1. You are a consultant, NOT just a search tool. 
-        2. If {current_loc} is mentioned, provide market insights (e.g., Vision 2030 for Saudi, IT hub for Bangalore, Tourism for UAE).
-        3. ALWAYS tell the user: "To calculate your exact returns, please visit our listings and use our 'ROI Generator' tool."
-        4. NEVER provide raw URLs or website links in your text response.
-        5. If DATA {json.dumps(matches[:3])} is not empty, say: "I have found some premium investment options in {current_loc} for you. See the details below."
-        6. If DATA is empty [], say: "We are currently expanding our portfolio in {current_loc}. However, I can advise you on why this is a great location for investment."
-        7. Keep the tone Royal, Professional, and Helpful.
-        """
-        
-        final_res = client.chat.completions.create(
-            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
-            model="llama3.1-8b",
-            temperature=0.1 # Isse AI "serious" rahega, bakwas nahi karega
-        )
-        
-        # --- RETURN STRUCTURE (Very Important for React Cards) ---
-        return {
-            "response": final_res.choices[0].message.content,
-            "results": matches[:3] 
-        }
     except Exception as e:
         return {"response": f"Error: {str(e)}"}
-# --- ENDPOINT 2: Description Generator ---
+        # --- ENDPOINT 2: Description Generator ---
 @app.post("/generate-listing-ai")
 async def generate_listing(request: DescriptionRequest):
     try:
         gulf_countries = ["uae", "saudi", "riyadh", "dubai", "qatar", "kuwait", "bahrain", "oman", "abu dhabi", "jeddah"]
         is_gulf = any(word in request.location.lower() for word in gulf_countries)
 
-        prompt = f"""Write a professional real estate listing for {request.title} in {request.location}. 
-        Features: {request.features}. {'Provide English and Arabic' if is_gulf else 'English ONLY'}. 
-        No fillers."""
+        async def generate():
+            prompt = f"""Write a professional real estate listing for {request.title} in {request.location}. 
+            Features: {request.features}. {'Provide English and Arabic' if is_gulf else 'English ONLY'}. 
+            No fillers, direct and royal tone."""
 
-        response = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama3.1-8b",
-            temperature=0.3
-        )
-        return {"content": response.choices[0].message.content}
+            # Stream=True se AI turant likhna shuru karega
+            response = client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama3.1-8b",
+                temperature=0.3,
+                stream=True 
+            )
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+                    await asyncio.sleep(0.01)
+
+        return StreamingResponse(generate(), media_type="text/plain")
     except Exception as e:
         return {"error": str(e)}
 
-# --- ENDPOINT 3: ROI Prediction (Fixed) ---
+# --- ENDPOINT 3: ROI Prediction (Optimized) ---
 @app.post("/ai-roi-prediction")
 async def predict_roi(data: ROIRequest):
     try:
-        # List of Gulf Countries
-        gulf_countries = ["UAE", "United Arab Emirates", "Saudi Arabia", "KSA", "Qatar", "Kuwait", "Bahrain", "Oman", "Dubai", "Abu Dhabi", "Riyadh"]
-        
-        # Check if location is in Gulf
+        gulf_countries = ["uae", "saudi", "riyadh", "dubai", "qatar", "kuwait", "bahrain", "oman", "abu dhabi", "jeddah"]
         is_gulf = any(country.lower() in data.location.lower() for country in gulf_countries)
+        lang_instruction = "Bilingual (English & Arabic)" if is_gulf else "English Only"
 
-        if is_gulf:
-            language_instruction = "Provide the analysis in both English and Arabic (Bilingual)."
-        else:
-            language_instruction = "Provide the analysis in English only."
+        async def generate_roi():
+            prompt = f"""Expert Real Estate Analysis:
+            Title: {data.title}, Location: {data.location}, Price: {data.price}, Features: {data.features}
+            Instruction: {lang_instruction}
+            Format: 1. Rental Yield, 2. 5-Year Appreciation, 3. Recommendation (BUY/HOLD/SELL)."""
 
-        prompt = f"""
-        You are a Real Estate Expert. Analyze this property:
-        Title: {data.title}
-        Location: {data.location}
-        Price: {data.price}
-        Description: {data.features}
+            response = client.chat.completions.create(
+                model="llama3.1-8b",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.5, # Thoda analytical logic ke liye 0.5 perfect hai
+                stream=True
+            )
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
 
-        Instruction: {language_instruction}
-        
-        Format the report as:
-        1. Rental Yield % (Estimated)
-        2. 5-Year Appreciation Potential
-        3. Final Recommendation (BUY/HOLD/SELL)
-        """
-
-        completion = client.chat.completions.create(
-            model="llama3.1-8b",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-        )
-        return {"analysis": completion.choices[0].message.content}
+        return StreamingResponse(generate_roi(), media_type="text/plain")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
         
