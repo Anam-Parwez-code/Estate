@@ -83,16 +83,17 @@ export default function Home() {
 
    {/* Swiper Section - Top Featured Listings */}
 <div className='max-w-7xl mx-auto'>
-  <Swiper 
-    navigation 
-    autoplay={{ delay: 3000 }} 
+ <Swiper 
+  modules={[Navigation, Autoplay]} 
+  navigation 
+  autoplay={{ delay: 3000, disableOnInteraction: false }}
     loop={true}
   
   >
     {offerListings && offerListings.length > 0 &&
       offerListings.map((listing) => (
         <SwiperSlide key={listing._id}>
-          <div className='w-full h-[550px]'>
+        <div className='relative w-full h-[550px]'>
              <img 
                 src={listing.imageUrls[0]} 
                 alt={listing.name}
