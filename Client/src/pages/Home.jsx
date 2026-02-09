@@ -83,36 +83,23 @@ export default function Home() {
 
    {/* Swiper Section - Top Featured Listings */}
 <div className='max-w-7xl mx-auto'>
- <Swiper 
-  modules={[Navigation, Autoplay]} 
-  navigation 
-  autoplay={{ delay: 3000, disableOnInteraction: false }}
-    loop={offerListings && offerListings.length > 1}
-  
-  >
-    {offerListings && offerListings.length > 0 &&
-      offerListings.map((listing) => (
-        <SwiperSlide key={listing._id}>
-        <div className='relative w-full h-[550px]'>
-             <img 
-                src={listing.imageUrls[0]} 
-                alt={listing.name}
-                fetchpriority="high" // Sabse pehle load hogi
-                className='w-full h-full object-cover' 
-             />
-             {/* Overlay for Price/Name (Optional - Professional Look) */}
-             <div className='absolute bottom-10 left-10 bg-black/50 backdrop-blur-md p-4 rounded-lg border border-white/10'>
-                <p className='text-white text-2xl font-bold'>{listing.name}</p>
-                <p className='text-accent text-xl font-semibold'>
-                   {listing.offer ? listing.discountPrice.toLocaleString() : listing.regularPrice.toLocaleString()} 
-                   <span className='text-sm uppercase ml-1'>{listing.currency || 'AED'}</span>
-                </p>
-             </div>
-          </div>
-        </SwiperSlide>
-      ))
-    }
-  </Swiper>
+  <Swiper navigation>
+        {offerListings &&
+          offerListings.length > 0 &&
+          offerListings.map((listing) => (
+            <SwiperSlide>
+              <div
+                style={{
+                  background: `url(${listing.imageUrls[0]}) center no-repeat`,
+                  backgroundSize: 'cover',
+                }}
+                className='h-[500px]'
+                key={listing._id}
+              ></div>
+            </SwiperSlide>
+          ))}
+      </Swiper>
+
 </div>
       {/* Listings Section */}
       <div className='max-w-6xl mx-auto p-3 flex flex-col gap-8 my-10'>
