@@ -95,6 +95,7 @@ export default function CreateListing() {
           });
           setImageUploadError(false);
           setUploading(false);
+          setFiles([]);
         })
         .catch((err) => {
           setImageUploadError('Image upload failed (2 mb max per image)');
@@ -213,6 +214,10 @@ export default function CreateListing() {
                 <span>{t('type_rent')}</span>
               </div>
               <div className='flex gap-2 items-center'>
+                <input type='checkbox' id='offer' className='w-5 h-5 accent-accent' onChange={handleChange} checked={formData.offer} />
+                <span>{t('feat_offer')} (Discount)</span>
+              </div>
+              <div className='flex gap-2 items-center'>
                 <input type='checkbox' id='parking' className='w-5 h-5 accent-accent' onChange={handleChange} checked={formData.parking} />
                 <span>{t('feat_parking')}</span>
               </div>
@@ -244,11 +249,18 @@ export default function CreateListing() {
               </select>
               <div className='flex items-center gap-2'>
                 <input type='number' id='regularPrice' required className='p-3 bg-slate-800 border border-slate-700 rounded-xl' onChange={handleChange} value={formData.regularPrice} />
-                <p className='text-xs'>{t('label_reg_price')}</p>
+               <span className='text-xs'>{t('label_reg_price')} {formData.type === 'rent' && <span className='text-accent'>(/ month)</span>}</span>
               </div>
+           
+          {formData.offer && (
+                <div className='flex items-center gap-2'>
+                  <input type='number' id='discountPrice' required className='p-3 bg-slate-800 border border-slate-700 rounded-xl w-32' onChange={handleChange} value={formData.discountPrice} />
+                  <p className='text-xs'>{t('label_disc_price')} <br/> ({formData.currency} / month)</p>
+                </div>
+              )}
             </div>
+          
           </div>
-
           {/* Right Side */}
         <div className='flex flex-col flex-1 gap-4'>
   <p className='font-semibold'>
