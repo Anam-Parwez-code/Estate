@@ -1,11 +1,9 @@
-
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 
-// ✅ CORRECT IMPORTS
 import 'swiper/css';
 import 'swiper/css/navigation';
 
@@ -22,12 +20,10 @@ export default function Home() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    // ✅ FIX 1: PARALLEL API CALLS - 3x FASTER!
     const fetchAllListings = async () => {
       try {
         setLoading(true);
         
-        // Sab ek saath fetch - much faster!
         const [offersRes, rentRes, saleRes] = await Promise.all([
           axiosInstance.get('/api/listing/get?offer=true&limit=4'),
           axiosInstance.get('/api/listing/get?type=rent&limit=4'),
@@ -57,7 +53,6 @@ export default function Home() {
         <meta name='description' content={t('meta_desc')} />
       </Helmet>
 
-      {/* Hero Section */}
       <div className='flex flex-col gap-6 p-28 px-3 max-w-6xl mx-auto'>
         <h1 className='text-white font-bold text-3xl lg:text-6xl'>
           {t('home_hero_title').split(t('home_hero_span'))[0]}
@@ -75,23 +70,22 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* ✅ FIX 2: SWIPER WITH PROPER HEIGHT */}
       {loading ? (
         <div className='w-full h-[550px] bg-slate-800/50 animate-pulse flex items-center justify-center'>
           <p className='text-white text-xl'>Loading properties...</p>
         </div>
       ) : (
         offerListings && offerListings.length > 0 && (
-          <div className='w-full h-[550px] mb-10'> 
+          <div className='w-full h-[550px] mb-10'>
             <Swiper
               modules={[Navigation, Autoplay]}
               navigation
               autoplay={{ delay: 3000, disableOnInteraction: false }}
               loop={offerListings.length > 1}
-              className='h-full w-full' {/* ⚡ Full height */}
+              className='h-full w-full'
             >
               {offerListings.map((listing) => (
-                <SwiperSlide key={listing._id} className='h-full'> 
+                <SwiperSlide key={listing._id} className='h-full'>
                   <Link to={`/listing/${listing._id}`} className='block h-full'>
                     <div className='relative w-full h-full'>
                       <img 
@@ -121,10 +115,8 @@ export default function Home() {
         )
       )}
 
-      {/* ✅ FIX 3: GRID LAYOUT - FASTER RENDERING */}
       <div className='max-w-6xl mx-auto p-3 flex flex-col gap-8 my-10'>
         
-        {/* Offer Listings */}
         {loading ? (
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
             {[1,2,3,4].map(i => (
@@ -149,7 +141,6 @@ export default function Home() {
           )
         )}
 
-        {/* Rent Listings */}
         {!loading && rentListings && rentListings.length > 0 && (
           <div>
             <div className='my-3'>
@@ -166,7 +157,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Sale Listings */}
         {!loading && saleListings && saleListings.length > 0 && (
           <div>
             <div className='my-3'>
@@ -188,3 +178,4 @@ export default function Home() {
     </div>
   );
 }
+
