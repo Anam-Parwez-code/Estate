@@ -1,7 +1,7 @@
 import os
 import json
 import requests
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from cerebras.cloud.sdk import Cerebras
@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 load_dotenv()
 app = FastAPI()
 
-# --- CORS setup (Fixed for Preflight) ---
 app.add_middleware(
     CORSMiddleware, 
     allow_origins=["https://my-royal-estate-app.vercel.app", "http://localhost:5173"], 
@@ -19,15 +18,11 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# --- CONFIG ---
 CEREBRAS_KEY = os.getenv("CEREBRAS_API_KEY")
 EXCHANGE_KEY = os.getenv("EXCHANGE_API_KEY")
-BASE_SITE_URL = "https://my-royal-estate-app.vercel.app" 
-LISTING_API_URL = "https://royal-estate-uzii.onrender.com/api/listing/get-all-chatbot"
 
 client = Cerebras(api_key=CEREBRAS_KEY)
 
-# Helper: Live Currency Rates
 def get_live_rates():
     try:
         url = f"https://v6.exchangerate-api.com/v6/{EXCHANGE_KEY}/latest/USD"
@@ -36,7 +31,6 @@ def get_live_rates():
     except:
         return {"SAR": 3.75, "INR": 83.5, "AED": 3.67, "USD": 1.0, "GBP": 0.79}
 
-# --- MODELS ---
 class ChatRequest(BaseModel):
     message: str
 
@@ -55,16 +49,14 @@ user_context = {"last_location": "", "last_language": "English"}
 
 @app.get("/")
 async def root():
-    return {"message": "AI Server is running!"}
+    return {"message": "Royal Estate AI Server - Fast & Permanent!"}
 
-# --- ENDPOINT 1: AI Chatbot (OPTIMIZED FOR SPEED) ---
 @app.post("/chat")
 async def ask_ai(request: ChatRequest):
     global user_context
     try:
         user_msg = request.message.lower()
         
-        # Quick language detection (no AI call needed)
         if any(char in user_msg for char in ['ا', 'ب', 'ت', 'ث', 'ج', 'ح']):
             detected_lang = "Arabic"
         elif any(word in user_msg for word in ['mein', 'hai', 'kya', 'chahiye', 'property', 'ghar']):
@@ -72,7 +64,6 @@ async def ask_ai(request: ChatRequest):
         else:
             detected_lang = "English"
 
-        # Simple keyword-based location detection (faster than AI)
         locations = {
             "riyadh": "Riyadh", "dubai": "Dubai", "bangalore": "Bangalore",
             "mumbai": "Mumbai", "delhi": "Delhi", "jeddah": "Jeddah",
@@ -88,7 +79,6 @@ async def ask_ai(request: ChatRequest):
                 user_context["last_location"] = value
                 break
 
-        # STRICT NO-LINK CONVERSATIONAL SYSTEM PROMPT
         system_prompt = f"""
 You are Royal Estate Investment Advisor speaking in {detected_lang}.
 
@@ -119,7 +109,6 @@ User: "Show me listings"
 You: "I can help you understand what's available in different areas. Are you looking for luxury villas, apartments, or commercial spaces? And what's your budget range?"
 """
         
-        # Single AI call (much faster than before)
         final_res = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_prompt}, 
@@ -127,18 +116,17 @@ You: "I can help you understand what's available in different areas. Are you loo
             ],
             model="llama3.1-8b",
             temperature=0.4,
-            max_tokens=200  # Speed optimization
+            max_tokens=200
         )
         
         response_text = final_res.choices[0].message.content
         
-        # Extra safety check - remove any accidental links
         if "http" in response_text or "www." in response_text or ".com" in response_text:
             response_text = "I'm here to discuss properties and investment opportunities. What specific information can I help you with?"
         
         return {
             "response": response_text,
-            "results": []  # Pure conversation mode - no listing cards
+            "results": []
         }
         
     except Exception as e:
@@ -147,7 +135,6 @@ You: "I can help you understand what's available in different areas. Are you loo
             "results": []
         }
 
-# --- ENDPOINT 2: Description Generator ---
 @app.post("/generate-listing-ai")
 async def generate_listing(request: DescriptionRequest):
     try:
@@ -167,14 +154,10 @@ async def generate_listing(request: DescriptionRequest):
     except Exception as e:
         return {"error": str(e)}
 
-# --- ENDPOINT 3: ROI Prediction ---
 @app.post("/ai-roi-prediction")
 async def predict_roi(data: ROIRequest):
     try:
-        # List of Gulf Countries
         gulf_countries = ["UAE", "United Arab Emirates", "Saudi Arabia", "KSA", "Qatar", "Kuwait", "Bahrain", "Oman", "Dubai", "Abu Dhabi", "Riyadh"]
-        
-        # Check if location is in Gulf
         is_gulf = any(country.lower() in data.location.lower() for country in gulf_countries)
 
         if is_gulf:
