@@ -48,3 +48,83 @@ body {
 .chat-html-render a:hover {
   transform: scale(1.02);
 }
+.swiper {
+  width: 100% !important;
+  height: 550px !important;
+  display: block !important;
+}
+
+.swiper-wrapper {
+  height: 100% !important;
+}
+
+.swiper-slide {
+  height: 550px !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Navigation buttons */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #fbbf24 !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50% !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 20px !important;
+  font-weight: bold !important;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(251, 191, 36, 0.4) !important;
+  transform: scale(1.1);
+  transition: all 0.3s ease;
+}
+
+/* Pagination dots */
+.swiper-pagination {
+  bottom: 20px !important;
+}
+
+.swiper-pagination-bullet {
+  width: 10px !important;
+  height: 10px !important;
+  background: #fff !important;
+  opacity: 0.6 !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #fbbf24 !important;
+  opacity: 1 !important;
+  width: 25px !important;
+  border-radius: 5px !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .swiper,
+  .swiper-slide {
+    height: 400px !important;
+  }
+
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .swiper-button-next::after,
+  .swiper-button-prev::after {
+    font-size: 16px !important;
+  }
+}
+
