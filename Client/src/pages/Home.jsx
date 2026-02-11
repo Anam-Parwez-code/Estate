@@ -82,7 +82,7 @@ export default function Home() {
         </div>
       ) : (
         offerListings && offerListings.length > 0 && (
-          <div className='w-full h-[550px] mb-10'> {/* ⚡ CRITICAL FIX: Added h-[550px] */}
+          <div className='w-full h-[550px] mb-10'> 
             <Swiper
               modules={[Navigation, Autoplay]}
               navigation
@@ -91,7 +91,7 @@ export default function Home() {
               className='h-full w-full' {/* ⚡ Full height */}
             >
               {offerListings.map((listing) => (
-                <SwiperSlide key={listing._id} className='h-full'> {/* ⚡ Full height */}
+                <SwiperSlide key={listing._id} className='h-full'> 
                   <Link to={`/listing/${listing._id}`} className='block h-full'>
                     <div className='relative w-full h-full'>
                       <img 
