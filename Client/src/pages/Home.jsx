@@ -76,13 +76,13 @@ export default function Home() {
         </div>
       ) : (
         offerListings && offerListings.length > 0 && (
-          <div className='w-full h-[550px] mb-10'>
+         <div style={{ width: '100%', height: '550px', marginBottom: '2.5rem' }}>
             <Swiper
               modules={[Navigation, Autoplay]}
               navigation
               autoplay={{ delay: 3000, disableOnInteraction: false }}
               loop={offerListings.length > 1}
-              className='h-full w-full'
+              style={{ height: '550px', width: '100%' }}
             >
               {offerListings.map((listing) => (
                 <SwiperSlide key={listing._id} className='h-full'>
