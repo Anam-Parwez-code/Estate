@@ -8,13 +8,14 @@ import SignUp from './pages/SignUp';
 import About from './pages/about';
 import Profile from './pages/Profile';
 import Header from './components/Header';
+
+{/*import AIChatbot from './components/AIChatbot';*/}
 import PrivateRoute from './components/PrivateRoute';
 import CreateListing from './pages/CreateListing';
 import UpdateListing from './pages/UpdateListing';
 import Listing from './pages/listing';
 import Search from './pages/Search';
 import Inbox from './components/Inbox';
-import axiosInstance from './services/api'; // <--- YE IMPORT ZAROORI HAI
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -57,16 +58,18 @@ export default function App() {
           <Route path='/search' element={<Search />} />
           <Route path='/listing/:listingId' element={<Listing />} />
 
-          <Route element={<PrivateRoute />}>
-            <Route path='/profile' element={<Profile />} />
-            <Route path='/create-listing' element={<CreateListing />} />
-            <Route path='/update-listing/:listingId' element={<UpdateListing />} />
-            <Route path='/inbox' element={<Inbox />} />
-          </Route>
-        </Routes>
-        {/* Chatbot ko yahan uncomment kar dena jab use karna ho */}
-        {/* <AIChatbot listings={allListings} /> */}
-      </BrowserRouter>
+        <Route element={<PrivateRoute />}>
+          <Route path='/profile' element={<Profile />} />
+          <Route path='/create-listing' element={<CreateListing />} />
+          <Route
+            path='/update-listing/:listingId'
+            element={<UpdateListing />}
+          />
+          <Route path='/inbox' element={<Inbox />} />
+        </Route>
+      </Routes>
+     {/*} <AIChatbot listings={allListings} />*/}
+    </BrowserRouter>
     </HelmetProvider>
   );
 }

@@ -1,137 +1,194 @@
-
 import os
 import json
 import requests
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from cerebras.cloud.sdk import Cerebras 
+from cerebras.cloud.sdk import Cerebras
 from dotenv import load_dotenv
 
-# .env file se variables load karne ke liye
 load_dotenv()
 app = FastAPI()
 
-# Frontend connection
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-
-# --- CONFIGURATION ---
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins=["https://my-royal-estate-app.vercel.app", "http://localhost:5173"], 
+    allow_credentials=True,
+    allow_methods=["*"], 
+    allow_headers=["*"]
+)
 
 CEREBRAS_KEY = os.getenv("CEREBRAS_API_KEY")
-EXCHANGE_KEY = os.getenv("EXCHANGE_API_KEY") # Apni key yahan dalein
+EXCHANGE_KEY = os.getenv("EXCHANGE_API_KEY")
+
 client = Cerebras(api_key=CEREBRAS_KEY)
+
 def get_live_rates():
     try:
-        # Hum USD ko base man kar saare rates le rahe hain
         url = f"https://v6.exchangerate-api.com/v6/{EXCHANGE_KEY}/latest/USD"
         res = requests.get(url, timeout=5).json()
         return res.get('conversion_rates', {})
-    except Exception as e:
-        print(f"Currency API Error: {e}")
-        return {"SAR": 3.75, "INR": 83.5, "EUR": 0.92, "USD": 1.0}
+    except:
+        return {"SAR": 3.75, "INR": 83.5, "AED": 3.67, "USD": 1.0, "GBP": 0.79}
 
 class ChatRequest(BaseModel):
     message: str
 
+class DescriptionRequest(BaseModel):
+    title: str
+    features: str
+    location: str
 
+class ROIRequest(BaseModel):
+    title: str
+    location: str
+    price: str
+    features: str
 
 user_context = {"last_location": "", "last_language": "English"}
+
+@app.get("/")
+async def root():
+    return {"message": "Royal Estate AI Server - Fast & Permanent!"}
 
 @app.post("/chat")
 async def ask_ai(request: ChatRequest):
     global user_context
     try:
-        user_msg = request.message
-        # 1. LIVE RATES FETCH KARNA (Sabse zaroori fix)
-        rates = get_live_rates()
-
-        # 2. AI Extraction Call
-        extraction_prompt = f"""
-        User Message: "{user_msg}"
-        Previous Location: "{user_context.get('last_location', 'None')}"
-        Return JSON ONLY: {{"location": "Name", "currency": "INR/USD/SAR/null", "lang": "Arabic/English"}}
-        """
+        user_msg = request.message.lower()
         
-        ex_res = client.chat.completions.create(
-            messages=[{"role": "user", "content": extraction_prompt}],
-            model="llama-3.1-8b",
-            temperature=0
-        )
-        
-        content = ex_res.choices[0].message.content
-        # JSON clean up logic taaki internal error na aaye
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0]
-        info = json.loads(content.strip())
+        if any(char in user_msg for char in ['ا', 'ب', 'ت', 'ث', 'ج', 'ح']):
+            detected_lang = "Arabic"
+        elif any(word in user_msg for word in ['mein', 'hai', 'kya', 'chahiye', 'property', 'ghar']):
+            detected_lang = "Hindi"
+        else:
+            detected_lang = "English"
 
-        # 3. Logic Updates
-        new_loc = info.get("location")
-        if new_loc and new_loc.lower() not in ["none", "null", "context"]:
-            user_context["last_location"] = new_loc.lower()
+        locations = {
+            "riyadh": "Riyadh", "dubai": "Dubai", "bangalore": "Bangalore",
+            "mumbai": "Mumbai", "delhi": "Delhi", "jeddah": "Jeddah",
+            "abu dhabi": "Abu Dhabi", "doha": "Doha", "hyderabad": "Hyderabad",
+            "kolkata": "Kolkata", "pune": "Pune", "chennai": "Chennai",
+            "mecca": "Mecca", "medina": "Medina", "dammam": "Dammam"
+        }
         
         current_loc = user_context.get("last_location", "")
-        target_curr = info.get("currency")
-        user_lang = info.get("lang", "English")
+        for key, value in locations.items():
+            if key in user_msg:
+                current_loc = value
+                user_context["last_location"] = value
+                break
 
-        # 4. Database Fetch
-        try:
-            db_res = requests.get("https://royal-estate-uzii.onrender.com/api/listing/get-all-chatbot", timeout=5)
-            all_listings = db_res.json()
-        except:
-            all_listings = [] # Agar backend off hai toh khali list
-
-        matches = []
-        for item in all_listings:
-            search_pool = f"{item.get('name','')} {item.get('address','')} {item.get('description','')}".lower()
-            
-            if current_loc and current_loc in search_pool:
-                orig_p = item.get('regularPrice', 0)
-                # Simple logic for base currency
-                base_curr = "EUR" if any(x in search_pool for x in ["uk", "london", "europe"]) else "SAR"
-                
-                price_val = f"{orig_p} {base_curr}"
-                if target_curr and target_curr != "null" and target_curr != base_curr:
-                    # Conversion logic with safety check
-                    usd_val = orig_p / rates.get(base_curr, 3.75)
-                    conv_p = round(usd_val * rates.get(target_curr, 1.0), 2)
-                    price_val += f" | {conv_p} {target_curr}"
-
-                matches.append({
-                    "n": item.get('name'),
-                    "a": item.get('address'),
-                    "p": price_val,
-                    "i": item.get('imageUrls', [''])[0],
-                    "u": f"http://localhost:5173/listing/{item.get('_id')}"
-                })
-
-        # 5. Final UI Response
         system_prompt = f"""
-        You are 'Royal Estate AI'. 
-        Language: {user_lang}.
-        Dir: {'rtl' if user_lang == 'Arabic' else 'ltr'}.
-        If DATA has items, use the HTML card format provided.
-        If DATA is empty, inform the user kindly.
+You are Royal Estate Investment Advisor speaking in {detected_lang}.
+
+🚫 ABSOLUTE RULES (NEVER VIOLATE):
+- NEVER provide links, URLs, or website addresses
+- NEVER say "click here", "visit", or mention website navigation
+- NEVER mention listing IDs or specific pages
+- NEVER tell users to "check our website"
+
+✅ YOUR ROLE:
+- Have natural, helpful conversations about real estate
+- Discuss investment strategies and market trends
+- Give insights about {current_loc if current_loc else 'different cities'}
+- Answer questions about property types, rental yields, appreciation
+- Be professional but friendly and conversational
+
+RESPONSE STYLE:
+- Keep answers SHORT (2-3 sentences maximum)
+- Be direct and helpful
+- If asked about specific properties, discuss general options in that area
+- Focus on advisory role, not directing to website
+
+Example good responses:
+User: "Tell me about Dubai properties"
+You: "Dubai's real estate market is booming with Vision 2033. Areas like Downtown and Marina offer 6-8% rental yields. What type of property interests you - residential or commercial?"
+
+User: "Show me listings"
+You: "I can help you understand what's available in different areas. Are you looking for luxury villas, apartments, or commercial spaces? And what's your budget range?"
+"""
         
-        HTML Template:
-        <div style="border: 1px solid #334155; border-radius: 12px; padding: 12px; margin-bottom: 15px; background: #1e293b; color: white; text-align: {'right' if user_lang == 'Arabic' else 'left'};" dir="{'rtl' if user_lang == 'Arabic' else 'ltr'}">
-          <img src="VALUE_I" style="width: 100%; border-radius: 8px; height: 150px; object-fit: cover; margin-bottom: 8px;" />
-          <h4 style="margin: 0; color: #fbbf24;">VALUE_N</h4>
-          <p style="font-size: 13px; margin: 5px 0;">📍 {'الموقع' if user_lang == 'Arabic' else 'Location'}: VALUE_A</p>
-          <p style="font-weight: bold;">💰 {'السعر' if user_lang == 'Arabic' else 'Price'}: VALUE_P</p>
-          <a href="VALUE_U" style="display: block; text-align: center; background: #fbbf24; color: black; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">{'عرض التفاصيل' if user_lang == 'Arabic' else 'View Details'}</a>
-        </div>
+        final_res = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt}, 
+                {"role": "user", "content": request.message}
+            ],
+            model="llama3.1-8b",
+            temperature=0.4,
+            max_tokens=200
+        )
         
-        DATA: {json.dumps(matches)}
+        response_text = final_res.choices[0].message.content
+        
+        if "http" in response_text or "www." in response_text or ".com" in response_text:
+            response_text = "I'm here to discuss properties and investment opportunities. What specific information can I help you with?"
+        
+        return {
+            "response": response_text,
+            "results": []
+        }
+        
+    except Exception as e:
+        return {
+            "response": "I'm here to help with your property questions. What would you like to know about real estate investment?",
+            "results": []
+        }
+
+@app.post("/generate-listing-ai")
+async def generate_listing(request: DescriptionRequest):
+    try:
+        gulf_countries = ["uae", "saudi", "riyadh", "dubai", "qatar", "kuwait", "bahrain", "oman", "abu dhabi", "jeddah"]
+        is_gulf = any(word in request.location.lower() for word in gulf_countries)
+
+        prompt = f"""Write a professional real estate listing for {request.title} in {request.location}. 
+        Features: {request.features}. {'Provide English and Arabic' if is_gulf else 'English ONLY'}. 
+        No fillers."""
+
+        response = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama3.1-8b",
+            temperature=0.3
+        )
+        return {"content": response.choices[0].message.content}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/ai-roi-prediction")
+async def predict_roi(data: ROIRequest):
+    try:
+        gulf_countries = ["UAE", "United Arab Emirates", "Saudi Arabia", "KSA", "Qatar", "Kuwait", "Bahrain", "Oman", "Dubai", "Abu Dhabi", "Riyadh"]
+        is_gulf = any(country.lower() in data.location.lower() for country in gulf_countries)
+
+        if is_gulf:
+            language_instruction = "Provide the analysis in both English and Arabic (Bilingual)."
+        else:
+            language_instruction = "Provide the analysis in English only."
+
+        prompt = f"""
+        You are a Real Estate Expert. Analyze this property:
+        Title: {data.title}
+        Location: {data.location}
+        Price: {data.price}
+        Description: {data.features}
+
+        Instruction: {language_instruction}
+        
+        Format the report as:
+        1. Rental Yield % (Estimated)
+        2. 5-Year Appreciation Potential
+        3. Final Recommendation (BUY/HOLD/SELL)
         """
 
-        final_res = client.chat.completions.create(
-            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_msg}],
-            model="llama-3.3-70b",
-            temperature=0.1
+        completion = client.chat.completions.create(
+            model="llama3.1-8b",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
         )
-
-        return {"reply": final_res.choices[0].message.content}
-
+        return {"analysis": completion.choices[0].message.content}
     except Exception as e:
-        print(f"CRITICAL ERROR: {e}")
-        return {"reply": "I'm having trouble connecting to my royal records. Please try again."}
+        raise HTTPException(status_code=500, detail=str(e))
+        
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

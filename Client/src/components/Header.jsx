@@ -71,7 +71,7 @@ export default function Header() {
           >
             <FaGlobe className='text-sm' />
             <span className='hidden xs:inline'>{i18n.language === 'en' ? 'العربية' : 'EN'}</span>
-            <span className='xs:hidden'>{i18n.language === 'en' ? 'AR' : 'EN'}</span>
+            <span className='xs:hidden'>{i18n.language === 'en' ? 'عربي' : 'EN'}</span>
           </button>
 
           <Link to='/'>
@@ -82,7 +82,7 @@ export default function Header() {
           
           <Link to='/about'>
             <li className='hidden md:inline text-slate-200 hover:text-accent transition-colors font-medium'>
-              {t('nav_about')} Yes
+              {t('nav_about')} 
             </li>
           </Link>
 
