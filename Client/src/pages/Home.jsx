@@ -91,7 +91,7 @@ export default function Home() {
                       <img 
                         src={listing.imageUrls[0]} 
                         alt={listing.name}
-                        className='w-full h-full object-cover'
+                       className='h-[320px] sm:h-[220px] w-full object-cover group-hover:scale-110 transition-transform duration-500'
                       />
                       <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent'></div>
                       <div className='absolute bottom-10 left-6 md:left-10 right-6'>
