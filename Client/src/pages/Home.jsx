@@ -25,7 +25,7 @@ export default function Home() {
         setLoading(true);
         
         const [offersRes, rentRes, saleRes] = await Promise.all([
-          axiosInstance.get('/api/listing/get?offer=true&limit=4'),
+          axiosInstance.get('/api/listing/get?limit=4'),
           axiosInstance.get('/api/listing/get?type=rent&limit=4'),
           axiosInstance.get('/api/listing/get?type=sale&limit=4')
         ]);
