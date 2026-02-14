@@ -3,37 +3,36 @@
 @tailwind utilities;
 
 body {
-   background-color: #0f172a; /* Aapka Primary Dark Blue Color */
+  background-color: #0f172a;
   margin: 0;
   padding: 0;
   min-height: 100vh;
   scroll-behavior: smooth;
-
 }
 
 /* Markdown Styling for AI Chat */
 .markdown-content a {
-    @apply text-blue-600 underline font-bold hover:text-blue-800 transition-colors;
-    /* Agar tailwind apply na ho toh fallback: */
-    color: #2563eb !important;
-    text-decoration: underline !important;
+  @apply text-blue-600 underline font-bold hover:text-blue-800 transition-colors;
+  color: #2563eb !important;
+  text-decoration: underline !important;
 }
 
 .markdown-content img {
-    @apply rounded-xl shadow-md my-3 border border-gray-200;
-    width: 100%;
-    max-width: 280px;
-    height: auto;
-    display: block;
+  @apply rounded-xl shadow-md my-3 border border-gray-200;
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  display: block;
 }
 
 .markdown-content p {
-    @apply mb-2 leading-relaxed text-gray-800;
+  @apply mb-2 leading-relaxed text-gray-800;
 }
 
 .markdown-content strong {
-    @apply font-semibold text-gray-900;
+  @apply font-semibold text-gray-900;
 }
+
 /* Taaki cards chat bubble ke andar sahi dikhein */
 .chat-html-render img {
   max-width: 100%;
@@ -47,6 +46,123 @@ body {
 
 .chat-html-render a:hover {
   transform: scale(1.02);
+}
+
+/* Swiper Styles */
+.swiper {
+  width: 100% !important;
+  height: 550px !important;
+  display: block !important;
+}
+
+.swiper-wrapper {
+  height: 100% !important;
+}
+
+.swiper-slide {
+  height: 550px !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: #fbbf24 !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 50% !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 20px !important;
+  font-weight: bold !important;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(251, 191, 36, 0.4) !important;
+  transform: scale(1.1);
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination {
+  bottom: 20px !important;
+}
+
+.swiper-pagination-bullet {
+  width: 10px !important;
+  height: 10px !important;
+  background: #fff !important;
+  opacity: 0.6 !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #fbbf24 !important;
+  opacity: 1 !important;
+  width: 25px !important;
+  border-radius: 5px !important;
+}
+
+/* Grid fix for cards */
+.grid {
+  display: grid !important;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+.gap-4 {
+  gap: 1rem !important;
+}
+
+.grid > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .swiper,
+  .swiper-slide {
+    height: 400px !important;
+  }
+
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .swiper-button-next::after,
+  .swiper-button-prev::after {
+    font-size: 16px !important;
+  }
 }
 
 
