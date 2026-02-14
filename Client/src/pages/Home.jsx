@@ -71,47 +71,45 @@ export default function Home() {
       </div>
 
       {loading ? (
-        <div className='w-full h-[550px] bg-slate-800/50 animate-pulse flex items-center justify-center'>
+        <div className='h-[550px] bg-slate-800/50 animate-pulse flex items-center justify-center'>
           <p className='text-white text-xl'>Loading properties...</p>
         </div>
       ) : (
         offerListings && offerListings.length > 0 && (
-         <div style={{ width: '100%', height: '550px', marginBottom: '2.5rem' }}>
-            <Swiper
-              modules={[Navigation, Autoplay]}
-              navigation
-              autoplay={{ delay: 3000, disableOnInteraction: false }}
-              loop={offerListings.length > 1}
-              style={{ height: '550px', width: '100%' }}
-            >
-              {offerListings.map((listing) => (
-                <SwiperSlide key={listing._id} className='h-full'>
-                  <Link to={`/listing/${listing._id}`} className='block h-full'>
-                    <div className='relative w-full h-full'>
-                      <img 
-                        src={listing.imageUrls[0]} 
-                        alt={listing.name}
-                       className='h-[320px] sm:h-[220px] w-full object-cover group-hover:scale-110 transition-transform duration-500'
-                      />
-                      <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent'></div>
-                      <div className='absolute bottom-10 left-6 md:left-10 right-6'>
-                        <h2 className='text-white text-3xl md:text-5xl font-bold mb-2 drop-shadow-2xl'>
-                          {listing.name}
-                        </h2>
-                        <p className='text-accent text-xl md:text-3xl font-bold drop-shadow-xl'>
-                          {listing.currency} {listing.offer ? listing.discountPrice.toLocaleString() : listing.regularPrice.toLocaleString()}
-                          {listing.type === 'rent' && ' / month'}
-                        </p>
-                        <p className='text-white/90 text-sm md:text-base mt-2'>
-                          📍 {listing.address}
-                        </p>
-                      </div>
+          <Swiper 
+            modules={[Navigation, Autoplay]} 
+            navigation 
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            loop={offerListings.length > 1}
+            className='h-[550px] shadow-2xl'
+          >
+            {offerListings.map((listing) => (
+              <SwiperSlide key={listing._id}>
+                <div 
+                  className='h-full w-full' 
+                  style={{ 
+                    background: `linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.7)), url(${listing.imageUrls[0]}) center no-repeat`, 
+                    backgroundSize: 'cover' 
+                  }}
+                >
+                  <Link to={`/listing/${listing._id}`} className='block h-full relative'>
+                    <div className='absolute bottom-10 left-6 md:left-10 right-6'>
+                      <h2 className='text-white text-3xl md:text-5xl font-bold mb-2 drop-shadow-2xl'>
+                        {listing.name}
+                      </h2>
+                      <p className='text-accent text-xl md:text-3xl font-bold drop-shadow-xl'>
+                        {listing.currency} {listing.offer ? listing.discountPrice?.toLocaleString() : listing.regularPrice?.toLocaleString()}
+                        {listing.type === 'rent' && ' / month'}
+                      </p>
+                      <p className='text-white/90 text-sm md:text-base mt-2'>
+                        📍 {listing.address}
+                      </p>
                     </div>
                   </Link>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
         )
       )}
 
@@ -178,4 +176,3 @@ export default function Home() {
     </div>
   );
 }
-
