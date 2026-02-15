@@ -17,7 +17,10 @@ export default function Home() {
   const [saleListings, setSaleListings] = useState([]);
   const [rentListings, setRentListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  
+  // 🔥 KEY FIX: Add key to force proper re-render on language change
+  const [swiperKey, setSwiperKey] = useState(0);
 
   useEffect(() => {
     const fetchAllListings = async () => {
@@ -43,6 +46,11 @@ export default function Home() {
 
     fetchAllListings();
   }, []);
+
+  // 🔥 KEY FIX: Re-render Swiper when language changes
+  useEffect(() => {
+    setSwiperKey(prev => prev + 1);
+  }, [i18n.language]);
 
   const allListings = [...(offerListings || []), ...(rentListings || []), ...(saleListings || [])];
 
@@ -77,11 +85,13 @@ export default function Home() {
       ) : (
         offerListings && offerListings.length > 0 && (
           <Swiper 
+            key={swiperKey} // 🔥 KEY FIX: Force re-render on language change
             modules={[Navigation, Autoplay]} 
             navigation 
             autoplay={{ delay: 3000, disableOnInteraction: false }}
             loop={offerListings.length > 1}
             className='h-[550px] shadow-2xl'
+            dir={i18n.language === 'ar' ? 'rtl' : 'ltr'} // 🔥 RTL support
           >
             {offerListings.map((listing) => (
               <SwiperSlide key={listing._id}>
