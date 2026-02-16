@@ -2,11 +2,11 @@ import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay, Lazy } from 'swiper/modules'; // 🔥 Added Lazy
+import { Navigation, Autoplay } from 'swiper/modules'; // Removed Lazy - not needed
 
 import 'swiper/css';
 import 'swiper/css/navigation';
-import 'swiper/css/lazy'; // 🔥 Added lazy CSS
+// Removed: import 'swiper/css/lazy'; - causing error
 
 import ListingItem from '../components/ListingItem';
 import AIChatbot from '../components/AIChatbot.jsx';
@@ -58,7 +58,7 @@ export default function Home() {
       <Helmet>
         <title>{t('meta_title')}</title>
         <meta name='description' content={t('meta_desc')} />
-        {/* 🔥 NEW: Preconnect to Cloudinary for faster image loading */}
+        {/* Preconnect for faster loading */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </Helmet>
@@ -88,29 +88,24 @@ export default function Home() {
         offerListings && offerListings.length > 0 && (
           <Swiper 
             key={swiperKey}
-            modules={[Navigation, Autoplay, Lazy]} // 🔥 Added Lazy module
+            modules={[Navigation, Autoplay]} 
             navigation 
             autoplay={{ delay: 3000, disableOnInteraction: false }}
             loop={offerListings.length > 1}
-            lazy={true} // 🔥 Enable lazy loading
-            preloadImages={false} // 🔥 Don't preload all images
             className='h-[550px] shadow-2xl'
             dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}
           >
-            {offerListings.map((listing) => (
+            {offerListings.map((listing, index) => (
               <SwiperSlide key={listing._id}>
-                {/* 🔥 CHANGED: From background-image to <img> for better performance */}
                 <div className='h-full w-full relative'>
+                  {/* Using img tag instead of background-image for better performance */}
                   <img 
                     src={listing.imageUrls[0]}
                     alt={listing.name}
-                    className='swiper-lazy absolute inset-0 w-full h-full object-cover'
-                    loading='lazy'
+                    className='absolute inset-0 w-full h-full object-cover'
+                    loading={index === 0 ? 'eager' : 'lazy'} // First image eager, rest lazy
                     decoding='async'
                   />
-                  
-                  {/* 🔥 NEW: Loading placeholder */}
-                  <div className='swiper-lazy-preloader swiper-lazy-preloader-white'></div>
                   
                   {/* Gradient overlay */}
                   <div className='absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/70'></div>
