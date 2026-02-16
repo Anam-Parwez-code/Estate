@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { MdLocationOn } from 'react-icons/md';
-import { useTranslation } from 'react-i18next'; // 1. Import
+import { useTranslation } from 'react-i18next';
+import { useState } from 'react'; // 🔥 NEW: For loading state
 
 export default function ListingItem({ listing }) {
-  const { t, i18n } = useTranslation(); // 2. Initialize
-
+  const { t, i18n } = useTranslation();
+  const [imageLoaded, setImageLoaded] = useState(false); // 🔥 NEW: Track image load
+  
   const getSymbol = (curr) => {
     const symbols = {
       'INR': '₹', 'SAR': 'SR', 'AED': 'AED',
@@ -12,14 +14,21 @@ export default function ListingItem({ listing }) {
     };
     return symbols[curr] || '₹';
   };
-
-  // Arabic ke liye price format fix karne ke liye locale check
+  
   const currentLocale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
-
+  
   return (
     <div className='bg-slate-800/40 border border-slate-700/50 shadow-xl hover:shadow-accent/10 transition-all overflow-hidden rounded-2xl w-full sm:w-[330px] group'>
       <Link to={`/listing/${listing._id}`}>
         <div className='relative overflow-hidden bg-slate-700'>
+          {/* 🔥 NEW: Loading placeholder - shows while image loads */}
+          {!imageLoaded && (
+            <div className='absolute inset-0 bg-slate-700 animate-pulse flex items-center justify-center'>
+              <div className='w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin'></div>
+            </div>
+          )}
+          
+          {/* 🔥 OPTIMIZED: Added loading state and smooth transition */}
           <img
             src={
               listing.imageUrls && listing.imageUrls.length > 0
@@ -27,17 +36,19 @@ export default function ListingItem({ listing }) {
              : 'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg'
             }
             alt='listing cover'
-            fetchpriority="high" 
-            decoding="async"
-            loading="eager"
-            className='h-[320px] sm:h-[220px] w-full object-cover group-hover:scale-110 transition-transform duration-500'
+            loading='lazy' // 🔥 Changed from 'eager' to 'lazy' for better performance
+            decoding='async'
+            onLoad={() => setImageLoaded(true)} // 🔥 NEW: Set loaded state
+            className={`h-[320px] sm:h-[220px] w-full object-cover group-hover:scale-110 transition-all duration-500 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0' // 🔥 NEW: Smooth fade-in
+            }`}
           />
-          {/* --- TRANSLATED BADGE --- */}
+          
           <div className='absolute top-3 left-3 bg-primary/80 backdrop-blur-sm text-accent text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-accent/30'>
             {t('badge_for')} {listing.type === 'rent' ? t('type_rent') : t('type_sale')}
           </div>
         </div>
-
+        
         <div className='p-4 flex flex-col gap-3 w-full'>
           <p className='truncate text-xl font-bold text-white group-hover:text-accent transition-colors'>
             {listing.name}
@@ -49,7 +60,7 @@ export default function ListingItem({ listing }) {
               {listing.address}
             </p>
           </div>
-
+          
           <p className='text-sm text-slate-500 line-clamp-2 italic'>
             {listing.description}
           </p>
@@ -72,7 +83,6 @@ export default function ListingItem({ listing }) {
             )}
           </div>
           
-          {/* --- TRANSLATED FEATURES (BEDS/BATHS) --- */}
           <div className='border-t border-slate-700/50 mt-1 pt-3 flex gap-4 text-slate-300'>
             <div className='flex items-center gap-1 text-xs font-semibold'>
               <span className='text-accent'>•</span>
