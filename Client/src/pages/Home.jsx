@@ -2,10 +2,11 @@ import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay } from 'swiper/modules';
+import { Navigation, Autoplay, Lazy } from 'swiper/modules'; // 🔥 Added Lazy
 
 import 'swiper/css';
 import 'swiper/css/navigation';
+import 'swiper/css/lazy'; // 🔥 Added lazy CSS
 
 import ListingItem from '../components/ListingItem';
 import AIChatbot from '../components/AIChatbot.jsx';
@@ -19,7 +20,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const { t, i18n } = useTranslation();
   
-  // 🔥 KEY FIX: Add key to force proper re-render on language change
   const [swiperKey, setSwiperKey] = useState(0);
 
   useEffect(() => {
@@ -47,7 +47,6 @@ export default function Home() {
     fetchAllListings();
   }, []);
 
-  // 🔥 KEY FIX: Re-render Swiper when language changes
   useEffect(() => {
     setSwiperKey(prev => prev + 1);
   }, [i18n.language]);
@@ -59,6 +58,9 @@ export default function Home() {
       <Helmet>
         <title>{t('meta_title')}</title>
         <meta name='description' content={t('meta_desc')} />
+        {/* 🔥 NEW: Preconnect to Cloudinary for faster image loading */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </Helmet>
 
       <div className='flex flex-col gap-6 p-28 px-3 max-w-6xl mx-auto'>
@@ -85,23 +87,34 @@ export default function Home() {
       ) : (
         offerListings && offerListings.length > 0 && (
           <Swiper 
-            key={swiperKey} // 🔥 KEY FIX: Force re-render on language change
-            modules={[Navigation, Autoplay]} 
+            key={swiperKey}
+            modules={[Navigation, Autoplay, Lazy]} // 🔥 Added Lazy module
             navigation 
             autoplay={{ delay: 3000, disableOnInteraction: false }}
             loop={offerListings.length > 1}
+            lazy={true} // 🔥 Enable lazy loading
+            preloadImages={false} // 🔥 Don't preload all images
             className='h-[550px] shadow-2xl'
-            dir={i18n.language === 'ar' ? 'rtl' : 'ltr'} // 🔥 RTL support
+            dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}
           >
             {offerListings.map((listing) => (
               <SwiperSlide key={listing._id}>
-                <div 
-                  className='h-full w-full' 
-                  style={{ 
-                    background: `linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.7)), url(${listing.imageUrls[0]}) center no-repeat`, 
-                    backgroundSize: 'cover' 
-                  }}
-                >
+                {/* 🔥 CHANGED: From background-image to <img> for better performance */}
+                <div className='h-full w-full relative'>
+                  <img 
+                    src={listing.imageUrls[0]}
+                    alt={listing.name}
+                    className='swiper-lazy absolute inset-0 w-full h-full object-cover'
+                    loading='lazy'
+                    decoding='async'
+                  />
+                  
+                  {/* 🔥 NEW: Loading placeholder */}
+                  <div className='swiper-lazy-preloader swiper-lazy-preloader-white'></div>
+                  
+                  {/* Gradient overlay */}
+                  <div className='absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/70'></div>
+                  
                   <Link to={`/listing/${listing._id}`} className='block h-full relative'>
                     <div className='absolute bottom-10 left-6 md:left-10 right-6'>
                       <h2 className='text-white text-3xl md:text-5xl font-bold mb-2 drop-shadow-2xl'>
