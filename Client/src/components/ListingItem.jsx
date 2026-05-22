@@ -15,6 +15,15 @@ export default function ListingItem({ listing }) {
     };
     return symbols[curr] || '₹';
   };
+  const getOptimizedUrl = (url) => {
+    if (!url) return 'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg';
+    
+    // Agar URL cloudinary ka hai, toh usme compression parameters insert karein
+    if (url.includes('cloudinary.com')) {
+      return url.replace('/upload/', '/upload/f_auto,q_auto,w_500,h_350,c_fill/');
+    }
+    return url;
+  };
   
   const currentLocale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
   
@@ -31,11 +40,12 @@ export default function ListingItem({ listing }) {
           
           {/* 🔥 OPTIMIZED: Added loading state and smooth transition */}
           <img
-            src={
-              listing.imageUrls && listing.imageUrls.length > 0
-             ? listing.imageUrls[0] 
-             : 'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg'
-            }
+            src={getOptimizedUrl(listing.imageUrls && listing.imageUrls[0])}
+           // src={getOptimizedUrl(
+            ////  listing.imageUrls && listing.imageUrls.length > 0
+             //? listing.imageUrls[0])
+            // : 'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg'
+           // }
             alt='listing cover'
             loading='lazy' // 🔥 Changed from 'eager' to 'lazy' for better performance
             decoding='async'
