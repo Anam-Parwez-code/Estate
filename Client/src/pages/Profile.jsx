@@ -136,8 +136,10 @@ export default function Profile() {
           <input onChange={(e) => setFile(e.target.files[0])} type='file' ref={fileRef} hidden accept='image/*' />
           <img
             onClick={() => fileRef.current.click()}
-            src={formData.avatar || currentUser.avatar}
+            src={getOptimizedImageUrl(formData.avatar || currentUser.avatar, { width: 160, height: 160 })}
             alt='profile'
+            loading='eager'
+            decoding='async'
             className='rounded-full h-28 w-28 object-cover cursor-pointer self-center mt-2 border-4 border-accent/30 hover:border-accent transition-all shadow-xl'
           />
           <p className='text-sm self-center'>

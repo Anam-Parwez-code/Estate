@@ -30,7 +30,4 @@ export const getOptimizedImageUrl = (url, options = {}) => {
 };
 
 export const getResponsiveImageSrcSet = (url, widths = [360, 640, 900, 1200]) =>
-  widths
-    .map((width) => `${getOptimizedImageUrl(url, { width })} ${width}w`)
-    .join(', ');
-
+  url ? widths.map((width) => `${getOptimizedImageUrl(url, { width })} ${width}w`).join(', ') : '';

@@ -18,23 +18,23 @@ export default function Home() {
   const [saleListings, setSaleListings] = useState([]);
   const [rentListings, setRentListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { t } = useTranslation();
+  const [swiperKey, setSwiperKey] = useState(0);
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const fetchAllListings = async () => {
       try {
         setLoading(true);
-        
+
         const [offersRes, rentRes, saleRes] = await Promise.all([
-          axiosInstance.get('/api/listing/get?offer=true&limit=4'),
+          axiosInstance.get('/api/listing/get?limit=4'),
           axiosInstance.get('/api/listing/get?type=rent&limit=4'),
-          axiosInstance.get('/api/listing/get?type=sale&limit=4')
+          axiosInstance.get('/api/listing/get?type=sale&limit=4'),
         ]);
 
         setOfferListings(offersRes.data);
         setRentListings(rentRes.data);
         setSaleListings(saleRes.data);
-        
       } catch (error) {
         console.error('Error fetching listings:', error);
       } finally {
@@ -45,6 +45,10 @@ export default function Home() {
     fetchAllListings();
   }, []);
 
+  useEffect(() => {
+    setSwiperKey((prev) => prev + 1);
+  }, [i18n.language]);
+
   const allListings = [...(offerListings || []), ...(rentListings || []), ...(saleListings || [])];
 
   return (
@@ -52,6 +56,8 @@ export default function Home() {
       <Helmet>
         <title>{t('meta_title')}</title>
         <meta name='description' content={t('meta_desc')} />
+        <link rel='preconnect' href='https://res.cloudinary.com' />
+        <link rel='dns-prefetch' href='https://res.cloudinary.com' />
       </Helmet>
 
       <div className='flex flex-col gap-6 p-28 px-3 max-w-6xl mx-auto'>
@@ -60,25 +66,22 @@ export default function Home() {
           <span className='text-accent'>{t('home_hero_span')}</span>
           {t('home_hero_title').split(t('home_hero_span'))[1]}
         </h1>
-        <div className='text-slate-400 text-xs sm:text-sm'>
-          {t('home_hero_sub')}
-        </div>
-        <Link
-          to={'/search'}
-          className='text-xs sm:text-sm text-accent font-bold hover:underline'
-        >
+        <div className='text-slate-400 text-xs sm:text-sm'>{t('home_hero_sub')}</div>
+        <Link to='/search' className='text-xs sm:text-sm text-accent font-bold hover:underline'>
           {t('home_get_started')}
         </Link>
       </div>
 
       {loading ? (
-        <div className='w-full h-[550px] bg-slate-800/50 animate-pulse flex items-center justify-center'>
+        <div className='h-[550px] bg-slate-800/50 animate-pulse flex items-center justify-center'>
           <p className='text-white text-xl'>Loading properties...</p>
         </div>
       ) : (
-        offerListings && offerListings.length > 0 && (
+        offerListings &&
+        offerListings.length > 0 && (
           <div className='w-full h-[550px] mb-10'>
             <Swiper
+              key={swiperKey}
               modules={[Navigation, Autoplay]}
               navigation
               autoplay={{ delay: 3000, disableOnInteraction: false }}
@@ -89,9 +92,17 @@ export default function Home() {
                 <SwiperSlide key={listing._id} className='h-full'>
                   <Link to={`/listing/${listing._id}`} className='block h-full'>
                     <div className='relative w-full h-full'>
-                      <img 
-                        src={getOptimizedImageUrl(listing.imageUrls[0], { width: 1600, height: 650 })} 
-                        srcSet={getResponsiveImageSrcSet(listing.imageUrls[0], [640, 960, 1280, 1600])}
+                      <img
+                        src={getOptimizedImageUrl(listing.imageUrls?.[0], {
+                          width: 1600,
+                          height: 650,
+                        })}
+                        srcSet={getResponsiveImageSrcSet(listing.imageUrls?.[0], [
+                          640,
+                          960,
+                          1280,
+                          1600,
+                        ])}
                         sizes='100vw'
                         alt={listing.name}
                         fetchPriority={index === 0 ? 'high' : 'auto'}
@@ -105,7 +116,10 @@ export default function Home() {
                           {listing.name}
                         </h2>
                         <p className='text-accent text-xl md:text-3xl font-bold drop-shadow-xl'>
-                          {listing.currency} {listing.offer ? listing.discountPrice.toLocaleString() : listing.regularPrice.toLocaleString()}
+                          {listing.currency}{' '}
+                          {listing.offer
+                            ? listing.discountPrice.toLocaleString()
+                            : listing.regularPrice.toLocaleString()}
                           {listing.type === 'rent' && ' / month'}
                         </p>
                         <p className='text-white/90 text-sm md:text-base mt-2'>
@@ -122,19 +136,19 @@ export default function Home() {
       )}
 
       <div className='max-w-6xl mx-auto p-3 flex flex-col gap-8 my-10'>
-        
         {loading ? (
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
-            {[1,2,3,4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className='bg-slate-800/50 h-64 animate-pulse rounded-lg'></div>
             ))}
           </div>
         ) : (
-          offerListings && offerListings.length > 0 && (
+          offerListings &&
+          offerListings.length > 0 && (
             <div>
               <div className='my-3'>
                 <h2 className='text-2xl font-semibold text-white'>{t('home_recent_offers')}</h2>
-                <Link className='text-sm text-accent hover:underline' to={'/search?offer=true'}>
+                <Link className='text-sm text-accent hover:underline' to='/search?offer=true'>
                   {t('home_show_more_offers')}
                 </Link>
               </div>
@@ -151,7 +165,7 @@ export default function Home() {
           <div>
             <div className='my-3'>
               <h2 className='text-2xl font-semibold text-white'>{t('home_recent_rent')}</h2>
-              <Link className='text-sm text-accent hover:underline' to={'/search?type=rent'}>
+              <Link className='text-sm text-accent hover:underline' to='/search?type=rent'>
                 {t('home_show_more_rent')}
               </Link>
             </div>
@@ -167,7 +181,7 @@ export default function Home() {
           <div>
             <div className='my-3'>
               <h2 className='text-2xl font-semibold text-white'>{t('home_recent_sale')}</h2>
-              <Link className='text-sm text-accent hover:underline' to={'/search?type=sale'}>
+              <Link className='text-sm text-accent hover:underline' to='/search?type=sale'>
                 {t('home_show_more_sale')}
               </Link>
             </div>
@@ -184,4 +198,3 @@ export default function Home() {
     </div>
   );
 }
-

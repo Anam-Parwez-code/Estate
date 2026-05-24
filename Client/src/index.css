@@ -3,37 +3,36 @@
 @tailwind utilities;
 
 body {
-   background-color: #0f172a; /* Aapka Primary Dark Blue Color */
+  background-color: #0f172a;
   margin: 0;
   padding: 0;
   min-height: 100vh;
   scroll-behavior: smooth;
-
 }
 
 /* Markdown Styling for AI Chat */
 .markdown-content a {
-    @apply text-blue-600 underline font-bold hover:text-blue-800 transition-colors;
-    /* Agar tailwind apply na ho toh fallback: */
-    color: #2563eb !important;
-    text-decoration: underline !important;
+  @apply text-blue-600 underline font-bold hover:text-blue-800 transition-colors;
+  color: #2563eb !important;
+  text-decoration: underline !important;
 }
 
 .markdown-content img {
-    @apply rounded-xl shadow-md my-3 border border-gray-200;
-    width: 100%;
-    max-width: 280px;
-    height: auto;
-    display: block;
+  @apply rounded-xl shadow-md my-3 border border-gray-200;
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  display: block;
 }
 
 .markdown-content p {
-    @apply mb-2 leading-relaxed text-gray-800;
+  @apply mb-2 leading-relaxed text-gray-800;
 }
 
 .markdown-content strong {
-    @apply font-semibold text-gray-900;
+  @apply font-semibold text-gray-900;
 }
+
 /* Taaki cards chat bubble ke andar sahi dikhein */
 .chat-html-render img {
   max-width: 100%;
@@ -48,6 +47,8 @@ body {
 .chat-html-render a:hover {
   transform: scale(1.02);
 }
+
+/* Swiper Styles */
 .swiper {
   width: 100% !important;
   height: 550px !important;
@@ -66,7 +67,6 @@ body {
   justify-content: center !important;
 }
 
-/* Navigation buttons */
 .swiper-button-next,
 .swiper-button-prev {
   color: #fbbf24 !important;
@@ -90,7 +90,6 @@ body {
   transition: all 0.3s ease;
 }
 
-/* Pagination dots */
 .swiper-pagination {
   bottom: 20px !important;
 }
@@ -107,6 +106,44 @@ body {
   opacity: 1 !important;
   width: 25px !important;
   border-radius: 5px !important;
+}
+
+/* Grid fix for cards */
+.grid {
+  display: grid !important;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+.gap-4 {
+  gap: 1rem !important;
+}
+
+.grid > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
 }
 
 /* Mobile responsive */
@@ -127,4 +164,7 @@ body {
     font-size: 16px !important;
   }
 }
+
+
+
 

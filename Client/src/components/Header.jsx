@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getOptimizedImageUrl } from '../utils/image';
 
 export default function Header() {
   const { currentUser } = useSelector((state) => state.user);
@@ -90,8 +91,10 @@ export default function Header() {
             {currentUser ? (
               <img
                 className='rounded-full h-9 w-9 object-cover border-2 border-accent hover:scale-105 transition-transform'
-                src={currentUser.avatar}
+                src={getOptimizedImageUrl(currentUser.avatar, { width: 96, height: 96 })}
                 alt='profile'
+                loading='eager'
+                decoding='async'
               />
             ) : (
               <li className='text-accent bg-accent/10 px-4 py-2 rounded-lg hover:bg-accent hover:text-primary transition-all font-semibold border border-accent/30 text-sm'>
