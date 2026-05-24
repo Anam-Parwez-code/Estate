@@ -13,6 +13,7 @@ import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axiosInstance from '../services/api'; // 1. Axios Import
+import { getOptimizedImageUrl } from '../utils/image';
 
 export default function Profile() {
   const { t } = useTranslation();
@@ -193,7 +194,13 @@ export default function Profile() {
               {userListings.map((listing) => (
                 <div key={listing._id} className='bg-slate-800/40 border border-slate-700 rounded-3xl p-5 flex flex-col gap-4 hover:shadow-2xl hover:border-accent/50 transition-all duration-300 group'>
                   <Link to={`/listing/${listing._id}`} className='relative overflow-hidden rounded-2xl'>
-                    <img src={listing.imageUrls[0]} alt='listing cover' className='h-48 w-full object-cover group-hover:scale-110 transition-transform duration-500' />
+                    <img
+                      src={getOptimizedImageUrl(listing.imageUrls[0], { width: 520, height: 320 })}
+                      alt='listing cover'
+                      loading='lazy'
+                      decoding='async'
+                      className='h-48 w-full object-cover group-hover:scale-110 transition-transform duration-500'
+                    />
                     <div className='absolute top-3 right-3 bg-primary/80 text-accent px-3 py-1 rounded-full text-xs font-bold'>
                       {listing.type === 'rent' ? 'RENT' : 'SALE'}
                     </div>

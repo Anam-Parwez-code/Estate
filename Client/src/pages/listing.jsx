@@ -17,6 +17,7 @@ import {
   FaShare,
 } from 'react-icons/fa';
 import Contact from '../components/Contact';
+import { getOptimizedImageUrl } from '../utils/image';
 
 export default function Listing() {
   const { t } = useTranslation();
@@ -93,7 +94,13 @@ export default function Listing() {
           <Swiper navigation className='h-[550px] shadow-2xl'>
             {listing.imageUrls.map((url) => (
               <SwiperSlide key={url}>
-                <div className='h-full w-full' style={{ background: `linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.7)), url(${url}) center no-repeat`, backgroundSize: 'cover' }}></div>
+                <div
+                  className='h-full w-full'
+                  style={{
+                    background: `linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.7)), url(${getOptimizedImageUrl(url, { width: 1600, height: 650 })}) center no-repeat`,
+                    backgroundSize: 'cover',
+                  }}
+                ></div>
               </SwiperSlide>
             ))}
           </Swiper>

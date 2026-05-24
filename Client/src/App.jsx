@@ -37,7 +37,7 @@ export default function App() {
     const fetchListings = async () => {
       try {
         // Ab ye Vercel ki jagah Render par jayega!
-        const res = await axiosInstance.get('/api/listing/get?limit=100'); 
+        const res = await axiosInstance.get('/api/listing/get?limit=12'); 
         setAllListings(res.data || []);
       } catch (error) {
         console.log("Error fetching for chatbot:", error);

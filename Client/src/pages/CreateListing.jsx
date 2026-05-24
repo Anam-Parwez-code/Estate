@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import axiosInstance from '../services/api';
 import axios from 'axios'; // Import axios for direct backend call
 import { FaPlus } from 'react-icons/fa';
+import { getOptimizedImageUrl } from '../utils/image';
 
 export default function CreateListing() {
   const { t } = useTranslation();
@@ -289,7 +290,7 @@ export default function CreateListing() {
     {/* 2. IMAGE PREVIEWS (Map existing URLs) */}
     {formData.imageUrls.map((url, index) => (
       <div key={url} className='relative group rounded-xl overflow-hidden border border-slate-700 h-24 shadow-md'>
-        <img src={url} alt='listing' className='w-full h-full object-cover' />
+        <img src={getOptimizedImageUrl(url, { width: 260, height: 180 })} alt='listing' className='w-full h-full object-cover' />
         <button 
           type='button' 
           onClick={() => handleRemoveImage(index)} 

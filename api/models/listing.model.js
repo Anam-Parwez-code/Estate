@@ -32,5 +32,6 @@ const listingSchema = new mongoose.Schema(
     strict: false } // strict false add kiya hai taaki extra fields allow ho sakein
 );
 
+
 const Listing = mongoose.model('Listing', listingSchema);
 export default Listing;

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axiosInstance from '../services/api'; // 1. Axios Instance Import
+import { getOptimizedImageUrl } from '../utils/image';
 
 export default function UpdateListing() {
   const { t } = useTranslation();
@@ -241,7 +242,7 @@ export default function UpdateListing() {
             <div className='grid grid-cols-2 gap-3 mt-2'>
               {formData.imageUrls.map((url, index) => (
                 <div key={url} className='relative group overflow-hidden rounded-xl border border-slate-700 shadow-lg aspect-square'>
-                  <img src={url} alt='listing' className='w-full h-full object-cover transition-transform group-hover:scale-110' />
+                  <img src={getOptimizedImageUrl(url, { width: 320, height: 320 })} alt='listing' className='w-full h-full object-cover transition-transform group-hover:scale-110' />
                   <div className='absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center'>
                     <button type='button' onClick={() => handleRemoveImage(index)} className='bg-red-500 text-white p-2 px-4 rounded-full text-xs font-bold uppercase shadow-lg'>
                       Delete

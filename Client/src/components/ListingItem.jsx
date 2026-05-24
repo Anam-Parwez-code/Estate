@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom';
 import { MdLocationOn } from 'react-icons/md';
 import { useTranslation } from 'react-i18next'; // 1. Import
+import { getOptimizedImageUrl, getResponsiveImageSrcSet } from '../utils/image';
 
 export default function ListingItem({ listing }) {
   const { t, i18n } = useTranslation(); // 2. Initialize
+  const imageUrl =
+    listing.imageUrls && listing.imageUrls.length > 0
+      ? listing.imageUrls[0]
+      : 'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg';
 
   const getSymbol = (curr) => {
     const symbols = {
@@ -21,15 +26,12 @@ export default function ListingItem({ listing }) {
       <Link to={`/listing/${listing._id}`}>
         <div className='relative overflow-hidden bg-slate-700'>
           <img
-            src={
-              listing.imageUrls && listing.imageUrls.length > 0
-             ? listing.imageUrls[0] 
-             : 'https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg'
-            }
+            src={getOptimizedImageUrl(imageUrl, { width: 420, height: 300 })}
+            srcSet={getResponsiveImageSrcSet(imageUrl, [320, 420, 640])}
+            sizes='(max-width: 640px) 100vw, 330px'
             alt='listing cover'
-            fetchpriority="high" 
-            decoding="async"
-            loading="eager"
+            decoding='async'
+            loading='lazy'
             className='h-[320px] sm:h-[220px] w-full object-cover group-hover:scale-110 transition-transform duration-500'
           />
           {/* --- TRANSLATED BADGE --- */}

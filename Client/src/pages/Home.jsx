@@ -11,6 +11,7 @@ import ListingItem from '../components/ListingItem';
 import AIChatbot from '../components/AIChatbot.jsx';
 import { useTranslation } from 'react-i18next';
 import axiosInstance from '../services/api';
+import { getOptimizedImageUrl, getResponsiveImageSrcSet } from '../utils/image';
 
 export default function Home() {
   const [offerListings, setOfferListings] = useState([]);
@@ -84,13 +85,18 @@ export default function Home() {
               loop={offerListings.length > 1}
               className='h-full w-full'
             >
-              {offerListings.map((listing) => (
+              {offerListings.map((listing, index) => (
                 <SwiperSlide key={listing._id} className='h-full'>
                   <Link to={`/listing/${listing._id}`} className='block h-full'>
                     <div className='relative w-full h-full'>
                       <img 
-                        src={listing.imageUrls[0]} 
+                        src={getOptimizedImageUrl(listing.imageUrls[0], { width: 1600, height: 650 })} 
+                        srcSet={getResponsiveImageSrcSet(listing.imageUrls[0], [640, 960, 1280, 1600])}
+                        sizes='100vw'
                         alt={listing.name}
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        decoding='async'
                         className='w-full h-full object-cover'
                       />
                       <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent'></div>
