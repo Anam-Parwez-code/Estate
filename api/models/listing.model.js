@@ -32,6 +32,10 @@ const listingSchema = new mongoose.Schema(
     strict: false } // strict false add kiya hai taaki extra fields allow ho sakein
 );
 
+// Helpful indexes for common query patterns (home + search lists).
+listingSchema.index({ createdAt: -1 });
+listingSchema.index({ type: 1, createdAt: -1 });
+listingSchema.index({ offer: 1, createdAt: -1 });
 
 const Listing = mongoose.model('Listing', listingSchema);
 export default Listing;

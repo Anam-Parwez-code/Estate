@@ -25,16 +25,10 @@ export default function Home() {
     const fetchAllListings = async () => {
       try {
         setLoading(true);
-
-        const [offersRes, rentRes, saleRes] = await Promise.all([
-          axiosInstance.get('/api/listing/get?limit=4'),
-          axiosInstance.get('/api/listing/get?type=rent&limit=4'),
-          axiosInstance.get('/api/listing/get?type=sale&limit=4'),
-        ]);
-
-        setOfferListings(offersRes.data);
-        setRentListings(rentRes.data);
-        setSaleListings(saleRes.data);
+        const res = await axiosInstance.get('/api/listing/home?limit=4');
+        setOfferListings(res.data?.offers || []);
+        setRentListings(res.data?.rent || []);
+        setSaleListings(res.data?.sale || []);
       } catch (error) {
         console.error('Error fetching listings:', error);
       } finally {

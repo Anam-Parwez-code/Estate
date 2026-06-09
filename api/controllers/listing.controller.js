@@ -3,7 +3,7 @@ import { errorHandler } from '../utils/error.js';
 
 
 // Create new listing
-export const createListing = async (req, res) => {
+export const createListing = async (req, res, next) => {
   try {
     console.log("Python se aane wala data:", req.body);
     const newListing = new Listing({
@@ -94,31 +94,72 @@ export const getListings = async (req, res, next) => {
     let type = req.query.type;
     if (type === undefined || type === 'all') type = { $in: ['sale', 'rent'] };
 
-    const searchTerm = req.query.searchTerm || '';
-    
+    const searchTermRaw = (req.query.searchTerm || '').trim();
     // SMART LOGIC: Har word ko alag alag search karne ke liye split karein
-    const keywords = searchTerm.split(' ').filter(word => word !== '').join('|');
+    const keywords = searchTermRaw
+      .split(/\s+/)
+      .filter((word) => word !== '')
+      .join('|');
 
     const sort = req.query.sort || 'createdAt';
     const order = req.query.order || 'desc';
 
-    const listings = await Listing.find({
-      // ROYAL SEARCH: Name, Address YA Description teeno mein match dhoondo
-      $or: [
-        { name: { $regex: keywords, $options: 'i' } },
-        { address: { $regex: keywords, $options: 'i' } },
-        { description: { $regex: keywords, $options: 'i' } },
-      ],
+    const filter = {
       offer,
       furnished,
       parking,
       type,
-    })
+    };
+
+    // IMPORTANT PERF: When searchTerm is empty, DO NOT run regex.
+    // Regex with empty pattern forces wide scans and is a common cause of very slow home/search loads.
+    if (keywords.length > 0) {
+      filter.$or = [
+        { name: { $regex: keywords, $options: 'i' } },
+        { address: { $regex: keywords, $options: 'i' } },
+        { description: { $regex: keywords, $options: 'i' } },
+      ];
+    }
+
+    const listings = await Listing.find(filter)
       .sort({ [sort]: order })
       .limit(limit)
-      .skip(startIndex);
+      .skip(startIndex)
+      .lean();
 
     return res.status(200).json(listings);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Fast endpoint for home page (no regex, minimal fields, lean queries).
+export const getHomeListings = async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 4, 12);
+
+    const select =
+      'name address type offer regularPrice discountPrice currency imageUrls createdAt';
+
+    const [offers, rent, sale] = await Promise.all([
+      Listing.find({ offer: true })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .select(select)
+        .lean(),
+      Listing.find({ type: 'rent' })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .select(select)
+        .lean(),
+      Listing.find({ type: 'sale' })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .select(select)
+        .lean(),
+    ]);
+
+    return res.status(200).json({ offers, rent, sale });
   } catch (error) {
     next(error);
   }

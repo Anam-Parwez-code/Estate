@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Royal Estate App — Project Report</title>
+    <style>
+      :root {
+        --text: #e5e7eb;
+        --muted: rgba(229, 231, 235, 0.72);
+        --rule: rgba(255, 255, 255, 0.14);
+        --bg: #0b1220;
+        --primary: #0b1220;
+        --accent: #22c55e;
+        --accent2: #06b6d4;
+        --panel: rgba(255, 255, 255, 0.04);
+      }
+      @page {
+        size: A4;
+        margin: 16mm 14mm;
+      }
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+          Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background: var(--bg);
+        line-height: 1.45;
+        margin: 0;
+      }
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0 0 8px;
+        color: #ffffff;
+      }
+      .meta {
+        color: var(--muted);
+        margin: 0 0 16px;
+      }
+      hr {
+        border: 0;
+        border-top: 1px solid var(--rule);
+        margin: 18px 0;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 18px 0 8px;
+        color: #ffffff;
+      }
+      h3 {
+        font-size: 15px;
+        margin: 14px 0 6px;
+        color: rgba(255, 255, 255, 0.92);
+      }
+      ul {
+        margin: 8px 0 12px 18px;
+      }
+      li {
+        color: rgba(229, 231, 235, 0.92);
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 0.95em;
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        font-size: 12px;
+        color: #e5e7eb;
+        margin-right: 6px;
+        background: rgba(34, 197, 94, 0.10);
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid rgba(34, 197, 94, 0.22);
+        border-radius: 16px;
+        padding: 16px 16px;
+      }
+
+      .panelTitle {
+        margin: 0 0 8px;
+        font-size: 18px;
+        color: #ffffff;
+      }
+
+      .stripe {
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(34, 197, 94, 0.95), rgba(6, 182, 212, 0.95));
+        margin: 8px 0 14px;
+      }
+
+      /* Cover */
+      .cover {
+        page-break-after: always;
+        border-radius: 18px;
+        overflow: hidden;
+        background: radial-gradient(1200px 400px at 20% 10%, rgba(34, 197, 94, 0.35), transparent 55%),
+          radial-gradient(900px 380px at 80% 35%, rgba(6, 182, 212, 0.28), transparent 55%),
+          linear-gradient(135deg, #07101f, #0b1220 40%, #050b14);
+        color: #e5e7eb;
+        padding: 34px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .logo {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-size: 20px;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+      .logo .a {
+        color: #ffffff;
+      }
+      .logo .b {
+        color: var(--accent);
+      }
+      .subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+      .cover h1 {
+        margin-top: 28px;
+        font-size: 34px;
+        line-height: 1.15;
+        color: #ffffff;
+      }
+      .cover p {
+        color: rgba(255, 255, 255, 0.86);
+        max-width: 72ch;
+      }
+      .chips {
+        margin-top: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .card {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.18);
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+      .card strong {
+        display: block;
+        color: #ffffff;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        opacity: 0.9;
+      }
+      .card span {
+        display: block;
+        margin-top: 6px;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+      .footer {
+        margin-top: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 11px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="cover">
+        <div class="brand">
+          <div>
+            <div class="logo"><span class="a">Royal</span><span class="b">Estate</span></div>
+            <div class="subtitle">Full‑stack Real Estate Listing Platform</div>
+          </div>
+          <div class="chip">Submission Report</div>
+        </div>
+
+        <h1>Project Report</h1>
+        <p>
+          A production‑ready real estate marketplace with listings, search & filters, authentication,
+          image uploads (Cloudinary), multilingual UI (RTL/LTR), and messaging/inbox module.
+        </p>
+
+        <div class="chips">
+          <div class="chip">React (Vite)</div>
+          <div class="chip">Tailwind CSS</div>
+          <div class="chip">Redux Toolkit</div>
+          <div class="chip">Node.js + Express</div>
+          <div class="chip">MongoDB (Mongoose)</div>
+          <div class="chip">Cloudinary</div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <strong>Key Modules</strong>
+            <span>Home Highlights • Search • Listing Details • Profile • Create/Update Listings • Inbox</span>
+          </div>
+          <div class="card">
+            <strong>Focus</strong>
+            <span>Fast UX, clean architecture, secure auth, scalable roadmap for Dubai Verified Contributor submission.</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>Royal Estate App</div>
+          <div>Generated: Jun 2026</div>
+        </div>
+      </section>
+
+      <h1>Royal Estate App — Project Report (Submission)</h1>
+      <p class="meta">
+        <span class="badge">Full‑stack</span>
+        <span class="badge">React (Vite)</span>
+        <span class="badge">Node/Express</span>
+        <span class="badge">MongoDB</span>
+        <span class="badge">Cloudinary</span>
+      </p>
+
+      <p><strong>Project Type:</strong> Full‑stack Real Estate Listing Platform</p>
+      <p>
+        <strong>Frontend:</strong> React (Vite) + Tailwind CSS + Redux Toolkit + i18n<br />
+        <strong>Backend:</strong> Node.js + Express + MongoDB (Mongoose)<br />
+        <strong>Media:</strong> Cloudinary (image upload & delivery)
+      </p>
+
+      <div class="panel">
+        <div class="panelTitle">How the app works (Property + Listing + ROI)</div>
+        <div class="stripe"></div>
+
+        <h3>1) Guest experience (no login)</h3>
+        <ul>
+          <li>Open `/` (Home): frontend calls <code>GET /api/listing/home</code> to load featured offers, recent rent, and recent sale listings quickly.</li>
+          <li>Click any property card: opens <code>/listing/:listingId</code> and renders full listing details (images from Cloudinary).</li>
+          <li>Use header search: navigates to `/search?searchTerm=...` and fetches filtered lists.</li>
+        </ul>
+
+        <h3>2) Sign up / Sign in (authorization)</h3>
+        <ul>
+          <li>Sign in sets a cookie named <code>access_token</code> (JWT, HTTP-only).</li>
+          <li>Backend middleware `verifyToken` reads this cookie and attaches `req.user`.</li>
+          <li>Protected pages/components work only when the token is valid (Profile, Create/Update Listing, Inbox).</li>
+        </ul>
+
+        <h3>3) How you list (create) a property (Owner flow)</h3>
+        <ul>
+          <li>User fills Create Listing form (title, description, address, beds/baths, rent/sale, offer/discount, etc.).</li>
+          <li>Upload images to Cloudinary:
+            <ul>
+              <li>Client sends image to backend upload route.</li>
+              <li>Backend uploads to Cloudinary and returns an image URL.</li>
+            </ul>
+          </li>
+          <li>Submit listing: backend runs <code>POST /api/listing/create</code> (requires token) and stores listing with <code>userRef = req.user.id</code>.</li>
+          <li>Search/Home automatically shows the new listing after it’s stored (home uses the fast home endpoint).</li>
+        </ul>
+
+        <h3>4) Update / Delete (security)</h3>
+        <ul>
+          <li>Backend checks ownership:
+            <ul>
+              <li><code>POST /api/listing/update/:id</code> updates only if <code>req.user.id === listing.userRef</code>.</li>
+              <li><code>DELETE /api/listing/delete/:id</code> deletes only if <code>req.user.id === listing.userRef</code>.</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>5) Messaging / Inbox</h3>
+        <ul>
+          <li>Send message:
+            <code>POST /api/message/send</code> (requires token)</li>
+          <li>Get inbox:
+            <code>GET /api/message/inbox</code> (requires token)</li>
+          <li>Messages can be linked to a listing via <code>listingId</code>, and sender info is populated.</li>
+        </ul>
+
+        <h3>6) Where “ROI” comes in (what this enables for users)</h3>
+        <ul>
+          <li>Fast browsing and search increases conversion (more views -> more enquiries).</li>
+          <li>Owner-only controls reduce mistakes and protect data integrity.</li>
+          <li>Cloudinary image delivery improves visual quality, which typically improves click-through.</li>
+        </ul>
+      </div>
+
+      <hr />
+
+      <h2>1) Executive Summary</h2>
+      <p>
+        Royal Estate App is a production‑ready property marketplace where users can browse,
+        search, and view listings, while authenticated users can create and manage their own
+        property listings. The platform supports multilingual UI (including RTL), image uploads,
+        authentication, and a modern responsive interface.
+      </p>
+
+      <hr />
+
+      <h2>2) Core Features (Functionalities)</h2>
+
+      <h3>A) Public (Guest) Features</h3>
+      <ul>
+        <li>
+          <strong>Home page highlights</strong>
+          <ul>
+            <li>Featured offers (carousel/slider)</li>
+            <li>Recent rent listings</li>
+            <li>Recent sale listings</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Search & filtering</strong>
+          <ul>
+            <li>Filter by rent/sale, offer, furnished, parking</li>
+            <li>Keyword search (name/address/description)</li>
+            <li>Sorting (newest/price etc. — based on API parameters)</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Listing details page</strong>
+          <ul>
+            <li>Full listing information</li>
+            <li>Images gallery (Cloudinary URLs)</li>
+            <li>Pricing and offer/discount display</li>
+          </ul>
+        </li>
+        <li><strong>About page</strong></li>
+      </ul>
+
+      <h3>B) Authentication & User Accounts</h3>
+      <ul>
+        <li>Sign up / Sign in</li>
+        <li>JWT-based session handling (token + cookies)</li>
+        <li>
+          Protected routes:
+          <ul>
+            <li>Profile</li>
+            <li>Create/Update listing</li>
+            <li>Inbox (messaging)</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>C) Listings (CRUD)</h3>
+      <ul>
+        <li>
+          Create listing:
+          <ul>
+            <li>Title, description, address</li>
+            <li>Beds/baths, furnished, parking</li>
+            <li>Rent/Sale, offer/discount</li>
+            <li>Multiple images upload</li>
+          </ul>
+        </li>
+        <li>Update listing</li>
+        <li>Delete listing</li>
+        <li>Owner‑only permissions</li>
+      </ul>
+
+      <h3>D) Media Uploads</h3>
+      <ul>
+        <li>Cloudinary image upload pipeline</li>
+        <li>CDN delivery + optimized transformations</li>
+      </ul>
+
+      <h3>E) Messaging / Inbox</h3>
+      <ul>
+        <li>Send messages</li>
+        <li>Conversation handling</li>
+        <li>Inbox UI (protected)</li>
+      </ul>
+
+      <h3>F) Internationalization (i18n)</h3>
+      <ul>
+        <li>Multi-language UI</li>
+        <li>RTL support (Arabic direction switching)</li>
+        <li>Dynamic language switch behavior</li>
+      </ul>
+
+      <hr />
+
+      <h2>3) System Architecture (High Level)</h2>
+
+      <h3>Frontend (Client)</h3>
+      <ul>
+        <li>React SPA using Vite bundler</li>
+        <li>React Router for navigation</li>
+        <li>Redux Toolkit + redux-persist for state persistence</li>
+        <li>API communication via Axios instance</li>
+        <li>Swiper for hero carousel</li>
+        <li>Cloudinary images optimized with <code>srcset</code> and responsive sizes</li>
+      </ul>
+
+      <h3>Backend (API)</h3>
+      <ul>
+        <li>
+          Express REST endpoints:
+          <ul>
+            <li><code>/api/auth/*</code> authentication</li>
+            <li><code>/api/user/*</code> profile/user endpoints</li>
+            <li><code>/api/listing/*</code> listings endpoints (search, CRUD)</li>
+            <li><code>/api/upload/*</code> uploads to Cloudinary</li>
+            <li><code>/api/message/*</code> messaging endpoints</li>
+          </ul>
+        </li>
+        <li>MongoDB persistence via Mongoose models</li>
+        <li>CORS configured for local + deployed origins</li>
+      </ul>
+
+      <hr />
+
+      <h2>4) Current Tech Stack (As Implemented)</h2>
+      <h3>Frontend</h3>
+      <ul>
+        <li>React (Vite)</li>
+        <li>Tailwind CSS</li>
+        <li>Redux Toolkit, react-redux, redux-persist</li>
+        <li>react-router-dom</li>
+        <li>axios</li>
+        <li>i18next, react-i18next</li>
+        <li>Swiper</li>
+        <li>react-helmet-async</li>
+      </ul>
+      <h3>Backend</h3>
+      <ul>
+        <li>Node.js, Express</li>
+        <li>MongoDB, Mongoose</li>
+        <li>jsonwebtoken (JWT)</li>
+        <li>cookie-parser</li>
+        <li>cors</li>
+        <li>multer + Cloudinary storage</li>
+        <li>dotenv</li>
+      </ul>
+      <h3>Deployment (Typical)</h3>
+      <ul>
+        <li>Frontend: Vercel / similar static hosting</li>
+        <li>Backend: Render / similar Node hosting</li>
+        <li>Database: MongoDB Atlas</li>
+        <li>Media: Cloudinary</li>
+      </ul>
+
+      <hr />
+
+      <h2>5) Performance & UX Optimizations Included</h2>
+      <ul>
+        <li>
+          Responsive images (Cloudinary URL transforms + <code>srcset</code>), lazy loading for
+          non‑critical images
+        </li>
+        <li>
+          Homepage data strategy: dedicated fast endpoint for home sections (offers/rent/sale),
+          avoids expensive empty‑regex scans
+        </li>
+      </ul>
+
+      <hr />
+
+      <h2>6) Security & Reliability</h2>
+      <ul>
+        <li>JWT authentication</li>
+        <li>Protected routes for private pages</li>
+        <li>Owner-only authorization for listing updates/deletes</li>
+        <li>Central error handling middleware (backend)</li>
+        <li>Credentialed CORS for secure cookie usage</li>
+      </ul>
+
+      <hr />
+
+      <h2>7) Future Stack / Roadmap (Recommended)</h2>
+      <h3>A) Frontend (Speed + SEO)</h3>
+      <ul>
+        <li>Next.js (SSR/SSG/ISR) for faster first load + SEO</li>
+        <li>Route-based code splitting + lazy loading heavy components</li>
+        <li>Advanced image optimization via Cloudinary presets / Next Image</li>
+        <li>PWA for offline caching and instant repeat loads</li>
+      </ul>
+      <h3>B) Backend (Scale + Latency)</h3>
+      <ul>
+        <li>Redis caching for homepage and popular searches</li>
+        <li>Rate limiting + request validation (zod/joi)</li>
+        <li>Observability: OpenTelemetry tracing + structured logs</li>
+        <li>Queue system (BullMQ/Redis) for background jobs</li>
+      </ul>
+      <h3>C) Search (Better relevance)</h3>
+      <ul>
+        <li>MongoDB Atlas Search or Elasticsearch/Meilisearch</li>
+        <li>Autocomplete + typo tolerance</li>
+      </ul>
+      <h3>D) Infrastructure / DevOps</h3>
+      <ul>
+        <li>Docker + CI/CD (GitHub Actions)</li>
+        <li>CDN + edge caching (Cloudflare)</li>
+        <li>Environment separation (dev/staging/prod)</li>
+      </ul>
+      <h3>E) Product Features</h3>
+      <ul>
+        <li>Favorites / wishlist</li>
+        <li>Agent / broker accounts</li>
+        <li>Appointment scheduling</li>
+        <li>Payments/subscriptions for premium listings</li>
+        <li>Admin dashboard (moderation, analytics)</li>
+        <li>Maps integration + nearby places</li>
+      </ul>
+
+      <hr />
+
+      <h2>8) Test Plan (Quick Checklist)</h2>
+      <ul>
+        <li>Verify home sections load under a few seconds</li>
+        <li>Search & filters return correct results</li>
+        <li>Auth flows (signup/signin/signout)</li>
+        <li>Create/update/delete listing permissions</li>
+        <li>Image uploads work and images render on listing pages</li>
+        <li>Inbox messaging basic flow</li>
+        <li>Language switch + RTL layout checks</li>
+      </ul>
+
+      <hr />
+
+      <h2>9) Conclusion</h2>
+      <p>
+        Royal Estate App is a complete full‑stack real estate platform with strong core marketplace
+        features (listings + search + auth + media + messaging) and a clear roadmap for
+        enterprise‑grade performance and scalability.
+      </p>
+    </main>
+  </body>
+</html>
+
