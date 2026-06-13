@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import cloudinary from 'cloudinary';
 import userRouter from './routes/user.route.js';
 import authRouter from './routes/auth.route.js';
 import listingRouter from './routes/listing.route.js';
@@ -10,13 +11,17 @@ import uploadRouter from './routes/upload.route.js';
 import path from 'path';
 import cors from "cors";
 
-// 1. Define __dirname first
 const __dirname = path.resolve();
-
-// 2. Then configure dotenv using the correct path
 dotenv.config({ path: path.join(__dirname, 'api', '.env') });
 
-// 3. (Optional) Debug: Check if URI is loading
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET,
+});
+
+// ✅ FIX: process.env.CLOUDINARY_NAME check karo (cloudinary.cloud_name Sahi Nahi Hai)
+console.log("Cloudinary Configured:", process.env.CLOUDINARY_NAME ? `Yes! (${process.env.CLOUDINARY_NAME})` : "No");
 console.log("Checking URI:", process.env.MONGO_URI ? "Found!" : "Still Undefined");
 
 mongoose
@@ -46,7 +51,6 @@ app.use("/api/message", messageRouter);
 
 app.use(express.static(path.join(__dirname, '/client/dist')));
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
