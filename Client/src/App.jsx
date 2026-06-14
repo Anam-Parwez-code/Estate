@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Home from './pages/Home';
 import SignIn from './pages/SignIn';
@@ -19,7 +19,6 @@ import Inbox from './components/Inbox';
 
 export default function App() {
   const { i18n } = useTranslation();
-  const [allListings, setAllListings] = useState([]);
 
   // RTL/LTR logic
   useEffect(() => {
@@ -31,20 +30,6 @@ export default function App() {
       document.body.style.fontFamily = "'Nunito', sans-serif";
     }
   }, [i18n.language]);
-
-  // FIX: Chatbot data fetch using AxiosInstance
-  useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        // Ab ye Vercel ki jagah Render par jayega!
-        const res = await axiosInstance.get('/api/listing/get?limit=12'); 
-        setAllListings(res.data || []);
-      } catch (error) {
-        console.log("Error fetching for chatbot:", error);
-      }
-    };
-    fetchListings();
-  }, []);
 
   return (
     <HelmetProvider>

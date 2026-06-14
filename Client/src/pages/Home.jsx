@@ -2,10 +2,11 @@ import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Autoplay } from 'swiper/modules';
+import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 import ListingItem from '../components/ListingItem';
 import AIChatbot from '../components/AIChatbot.jsx';
@@ -44,6 +45,7 @@ export default function Home() {
   }, [i18n.language]);
 
   const allListings = [...(offerListings || []), ...(rentListings || []), ...(saleListings || [])];
+  const heroListings = allListings.filter((listing) => listing.imageUrls?.[0]);
 
   return (
     <div className='bg-primary min-h-screen'>
@@ -67,33 +69,35 @@ export default function Home() {
       </div>
 
 {loading ? (
-  <div className='h-[550px] bg-slate-800/50 animate-pulse flex items-center justify-center'>
+  <div className='w-screen h-[420px] md:h-[550px] bg-slate-800/50 animate-pulse flex items-center justify-center'>
     <p className='text-white text-xl'>Loading properties...</p>
   </div>
 ) : (
-  offerListings &&
-  offerListings.length > 0 && (
-    <div className='w-full h-[550px] mb-10'>
+  heroListings.length > 0 && (
+    <section className='w-screen h-[420px] md:h-[550px] mb-10 overflow-hidden'>
       <Swiper
         key={swiperKey}
-        modules={[Navigation, Autoplay]}
+        modules={[Navigation, Autoplay, Pagination]}
         navigation
+        pagination={{ clickable: true }}
         autoplay={{ delay: 3000, disableOnInteraction: false }}
-        loop={offerListings.length > 1}
+        loop={heroListings.length > 1}
         className='h-full w-full'
       >
-        {offerListings.map((listing, index) => (
+        {heroListings.map((listing, index) => (
           <SwiperSlide key={listing._id} className='h-full'>
             <Link to={`/listing/${listing._id}`} className='block h-full'>
               <div className='relative w-full h-full'>
                 {/* ✅ FIXED IMAGE - Direct URL + fixed height */}
                 <img
-                  src={listing.imageUrls?.[0]}
+                  src={getOptimizedImageUrl(listing.imageUrls?.[0], { width: 1800, height: 650 })}
+                  srcSet={getResponsiveImageSrcSet(listing.imageUrls?.[0], [640, 900, 1200, 1600, 2000])}
+                  sizes='100vw'
                   alt={listing.name}
                   loading={index === 0 ? 'eager' : 'lazy'}
                   decoding='async'
                   fetchPriority={index === 0 ? 'high' : 'auto'}
-                  className='w-full h-[550px] object-cover'
+                  className='block w-full h-full object-cover'
                 />
                 <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent'></div>
                 <div className='absolute bottom-10 left-6 md:left-10 right-6'>
@@ -116,7 +120,7 @@ export default function Home() {
           </SwiperSlide>
         ))}
       </Swiper>
-    </div>
+    </section>
   )
 )}      
 
